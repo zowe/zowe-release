@@ -1,0 +1,8 @@
+name: "Validate"
+description: "Validate zowe artifacts"
+inputs:
+  
+  
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
