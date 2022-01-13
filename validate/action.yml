@@ -7,6 +7,9 @@ inputs:
   build-num:
     description: build-number
     required: true
+  release-version:
+    description: zowe release version
+    required: true
   
 runs:
   using: 'node12'

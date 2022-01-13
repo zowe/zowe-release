@@ -1,0 +1,23 @@
+{
+  "name": "zowe-release",
+  "version": "1.0.0",
+  "description": "a project containing zowe release related code",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zowe/zowe-release.git"
+  },
+  "author": "IBM",
+  "license": "EPL-2.0",
+  "bugs": {
+    "url": "https://github.com/zowe/zowe-release/issues"
+  },
+  "homepage": "https://github.com/zowe/zowe-release#readme",
+  "dependencies": {
+    "@actions/core": "^1.6.0",
+    "zowe-common": "github:zowe-actions/zowe-common"
+  }
+}
