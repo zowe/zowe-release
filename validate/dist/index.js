@@ -6599,6 +6599,11 @@ var buildName = core.getInput('build-name')
 var buildNum = core.getInput('build-num')
 var releaseVersion = core.getInput('release-version')
 
+//mandatory check
+utils.mandatoryInputCheck(buildName, 'build-name')
+utils.mandatoryInputCheck(buildNum, 'build-num')
+utils.mandatoryInputCheck(releaseVersion, 'release-version')
+
 // init
 var zoweReleaseJsonFile = 'zowe-release-v@.json'
 if (releaseVersion.startsWith('1')) {

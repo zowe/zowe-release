@@ -72,3 +72,8 @@ jobs:
 
       - name: 'Validate zowe artifacts'
         uses: ./validate
+        with:
+          build-name: ${{ github.event.inputs.zowe-build-name }}
+          build-num: ${{ github.event.inputs.zowe-build-number }}
+          release-version: ${{ github.event.inputs.zowe-release-version }}
+    
