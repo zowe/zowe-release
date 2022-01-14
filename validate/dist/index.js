@@ -6588,7 +6588,7 @@ var __webpack_exports__ = {};
  */
 
 const core = __nccwpck_require__(4425)
-const { github, utils , InvalidArgumentException } = __nccwpck_require__(9089)
+const { github, utils } = __nccwpck_require__(9089)
 const fs = __nccwpck_require__(5747);
 
 // Defaults
@@ -6638,20 +6638,12 @@ function searchArtifact(pattern, buildName, buildNum) {
     return utils.sh(cmd)
 }
 
-
-// // check if tag already exists
-// github.cloneRepository([
-//   email                      : lib.Constants.DEFAULT_GITHUB_ROBOT_EMAIL,
-//   usernamePasswordCredential : lib.Constants.DEFAULT_GITHUB_ROBOT_CREDENTIAL,
-//   repository                 : ZOWE_INSTALL_PACKAGING_REPO,
-//   folder                     : '.tag',
-//   branch                     : 'master'
-// ])
-// if (github.tagExistsRemote("v${params.ZOWE_RELEASE_VERSION}")) {
-//   error "Repository tag v${params.ZOWE_RELEASE_VERSION} already exists."
-// } else {
-//   echo ">>>> Repository tag v${params.ZOWE_RELEASE_VERSION} doesn't exist, may proceed."
-// }
+// check if tag already exists
+if (github.tagExistsRemote(`v${releaseVersion}`)) {
+    core.setFailed(`Repository tag v${releaseVersion} already exists.`)
+} else {
+    console.log(`>>>> Repository tag v${releaseVersion} doesn't exist, may proceed.`)
+}
 
 // // find the Zowe build number will be promoted
 // releaseArtifacts['zowe'] = [:]
