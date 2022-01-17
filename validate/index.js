@@ -46,19 +46,6 @@ if (searchArtifact(releaseFilesPattern) == '') {
     core.setFailed(`Zowe version ${releaseVersion} already exists (${releaseFilesPattern})`)
 }
 
-
-function searchArtifact(pattern, buildName, buildNum) {
-    if ((buildName == '' && buildNum != '') || (buildName != '' && buildNum == '')) {
-        throw new Error ('Function searchArtifact must have neither buildName or buildNum, or both')
-    }
-    var cmd = `jfrog rt search`
-    if (buildName && buildNum) {
-        cmd += ` --build="${buildName}/${buildNum}"`
-    }
-    cmd += ` ${pattern} | jq -r '.[].path'`
-    return utils.sh(cmd)
-}
-
 // check if tag already exists
 if (github.tagExistsRemote(`v${releaseVersion}`)) {
     core.setFailed(`Repository tag v${releaseVersion} already exists.`)
@@ -270,3 +257,17 @@ if (github.tagExistsRemote(`v${releaseVersion}`)) {
 // //   error "Cannot extract git revision from build \"${releaseArtifacts['cli-plugins']['buildName']}/${releaseArtifacts['cli-plugins']['buildNumber']}\""
 // // }
 // // echo "
+
+
+
+function searchArtifact(pattern, buildName, buildNum) {
+    if ((buildName == '' && buildNum != '') || (buildName != '' && buildNum == '')) {
+        throw new Error ('Function searchArtifact must have neither buildName or buildNum, or both')
+    }
+    var cmd = `jfrog rt search`
+    if (buildName && buildNum) {
+        cmd += ` --build="${buildName}/${buildNum}"`
+    }
+    cmd += ` ${pattern} | jq -r '.[].path'`
+    return utils.sh(cmd)
+}
