@@ -71,8 +71,8 @@ releaseArtifacts['zowe']['source'] = searchArtifact(
 console.log(`>>>> Found Zowe build ${releaseArtifacts['zowe']['source']['path']}`)
 
 // try to get Zowe build commit hash
-if (releaseArtifacts['zowe']['source']['props']['vcs']['revision'][0] != '' ) {
-    releaseArtifacts['zowe']['revision'] = releaseArtifacts['zowe']['source']['props']['vcs']['revision'][0]
+if (releaseArtifacts['zowe']['source']['props']['vcs.revision'][0] != '' ) {
+    releaseArtifacts['zowe']['revision'] = releaseArtifacts['zowe']['source']['props']['vcs.revision'][0]
 }
 else {
     throw new Error(`Zowe release artifact vcs revision is null`)
@@ -312,3 +312,5 @@ function searchArtifact(pattern, buildName, buildNum) {
 function logValidate(msg) {
     console.log('\x1b[32m%s\x1b[0m', msg)
 }
+
+console.log(JSON.stringify(releaseArtifacts, null, 2))
