@@ -6892,8 +6892,7 @@ function searchArtifact(pattern, buildName, buildNum) {
 }
 
 function logValidate(msg) {
-    console.log('\x1b[36m%s\x1b[0m', 'I am cyan');  //debug
-    console.log(`%c${msg}`, 'color: green')
+    console.log('\x1b[32m%s\x1b[0m', msg)
 }
 
 })();
