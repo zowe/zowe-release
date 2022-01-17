@@ -43,7 +43,7 @@ var releaseFilesPattern = `${zoweReleaseJsonObject.zowe.to}/org/zowe/${releaseVe
 console.log(`Checking if ${releaseVersion} already exists in Artifactory ...`)
 var searchResult = searchArtifact(releaseFilesPattern)
 if (!searchResult || searchResult == null || searchResult == '') {
-    console.info(`>>[validate 1/???]>> Target artifactory folder ${releaseFilesPattern} doesn\'t exist, may proceed.`)
+    logValidate(`>>[validate 1/???]>> Target artifactory folder ${releaseFilesPattern} doesn\'t exist, may proceed.`)
 } else {
     throw new Error(`Zowe version ${releaseVersion} already exists (${releaseFilesPattern})`)
 }
@@ -52,7 +52,7 @@ if (!searchResult || searchResult == null || searchResult == '') {
 if (github.tagExistsRemote(`v${releaseVersion}`)) {
     throw new Error(`Repository tag v${releaseVersion} already exists.`)
 } else {
-    console.info(`>>[validate 2/???]>> Repository tag v${releaseVersion} doesn't exist, may proceed.`)
+    logValidate(`>>[validate 2/???]>> Repository tag v${releaseVersion} doesn't exist, may proceed.`)
 }
 
 // start to build up a new json derived from the zowe release json file
@@ -80,8 +80,8 @@ else {
 if (!releaseArtifacts.zowe.revision.match(/^[0-9a-fA-F]{40}$/)) { // if it's a valid SHA-1 commit hash
   throw new Error(`Cannot extract git revision from build \"${releaseArtifacts.zowe.buildName}/${releaseArtifacts.zowe.buildNumber}\"`)
 }
-console.info(`>>[validate 3/???]>> Build ${releaseArtifacts.zowe.buildName}/${releaseArtifacts.zowe.buildNumber} commit hash is ${releaseArtifacts.zowe.revision}, may proceed.`)
-console.info(`>>[validate 3/???]>> vcs url is ${releaseArtifacts.zowe.source.props['vcs.url'][0]}, vcs revision is ${releaseArtifacts.zowe.revision}`)
+logValidate(`>>[validate 3/???]>> Build ${releaseArtifacts.zowe.buildName}/${releaseArtifacts.zowe.buildNumber} commit hash is ${releaseArtifacts.zowe.revision}, may proceed.`)
+logValidate(`>>[validate 3/???]>> vcs url is ${releaseArtifacts.zowe.source.props['vcs.url'][0]}, vcs revision is ${releaseArtifacts.zowe.revision}`)
 
 // // get SMP/e build
 // try {
@@ -310,4 +310,8 @@ function searchArtifact(pattern, buildName, buildNum) {
     else {
         return JSON.parse(out)
     }
+}
+
+function logValidate(msg) {
+    console.log(`%c${msg}`, 'color: green')
 }
