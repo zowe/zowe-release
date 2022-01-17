@@ -32,7 +32,6 @@ if (releaseVersion.startsWith('1')) {
 } else if (releaseVersion.startsWith('2')) {
     zoweReleaseJsonFile = zoweReleaseJsonFile.replace(/@/g,'2')
 }
-
 var zoweReleaseJsonObject = JSON.parse(fs.readFileSync(projectRootPath + '/' + zoweReleaseJsonFile))
 
 // this is the target Artifactory path will be released to
@@ -53,19 +52,21 @@ if (github.tagExistsRemote(`v${releaseVersion}`)) {
     console.log(`>>>> Repository tag v${releaseVersion} doesn't exist, may proceed.`)
 }
 
-// // find the Zowe build number will be promoted
-// releaseArtifacts['zowe'] = [:]
-// releaseArtifacts['zowe']['target'] = "zowe-${params.ZOWE_RELEASE_VERSION}.pax".toString()
-// releaseArtifacts['zowe']['buildName'] = params.ZOWE_BUILD_NAME
-// releaseArtifacts['zowe']['buildNumber'] = params.ZOWE_BUILD_NUMBER
+// start to build up a new json derived from the zowe release json file
+var releaseArtifacts = {}
+releaseArtifacts.zowe = {}
+releaseArtifacts.zowe.target = `zowe-${releaseVersion}.pax`
+releaseArtifacts.zowe.buildName = buildName
+releaseArtifacts.zowe.buildNumber = buildNum
 
-// // get zowe build source artifact
-// releaseArtifacts['zowe']['source'] = pipeline.artifactory.getArtifact([
-//   'pattern'      : "${params.ZOWE_BUILD_REPOSITORY}/${params.ZOWE_BUILD_PATH}/${ZOWE_RELEASE_FILEPATTERN}",
-//   'build-name'   : releaseArtifacts['zowe']['buildName'],
-//   'build-number' : releaseArtifacts['zowe']['buildNumber']
-// ])
-// echo ">>> Found Zowe build ${releaseArtifacts['zowe']['source']['path']}."
+// get zowe build source artifact
+releaseArtifacts.zowe.source = {}
+releaseArtifacts.zowe.source.path = searchArtifact(
+  `${zoweReleaseJsonObject.zowe.from}/${zoweReleaseJsonObject.zowe.path}/${zoweReleaseJsonObject.zowe.filesAtSource['zowe-*.pax']}`,
+  buildName,
+  buildNum
+)
+console.log(`>>> Found Zowe build ${releaseArtifacts.zowe.source.path}.`)
 
 // // try to get Zowe build commit hash
 // def zoweBuildInfo = pipeline.artifactory.getBuildInfo(

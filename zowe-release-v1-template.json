@@ -3,7 +3,7 @@
         "from" : "libs-snapshot-local",
         "to" : "libs-release-local",
         "path" : "/org/zowe/{ZOWE_ARTIFACT_DIR}",
-        "files-at-source": {
+        "filesAtSource": {
             "zowe-*.pax": "zowe-*.pax",
             "zowe-smpe-*.zip": "zowe-smpe-*.zip",
             "smpe-promote-*.tar": "smpe-promote-*.tar",
@@ -20,7 +20,7 @@
         "from" : "libs-release-local",
         "to" : "libs-release-local",
         "path" : "/org/zowe/cli",
-        "files-at-source": {
+        "filesAtSource": {
             "zowe-cli-package-1*.zip": "zowe-cli-package-1*.zip",
             "zowe-cli-plugins-1*.zip": "zowe-cli-plugins-1*.zip"
         },
@@ -31,7 +31,7 @@
         "from" : "libs-release-local",
         "to" : "libs-release-local",
         "path" : "/org/zowe/sdk",
-        "files-at-source": [
+        "filesAtSource": [
             "zowe-nodejs-sdk-typedoc-*.zip",
             "zowe-python-sdk-*.zip",
             "zowe-nodejs-sdk-*.zip"
