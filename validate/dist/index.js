@@ -6616,7 +6616,7 @@ if (releaseVersion.startsWith('1')) {
 var zoweReleaseJsonObject = JSON.parse(fs.readFileSync(projectRootPath + '/' + zoweReleaseJsonFile))
 
 // this is the target Artifactory path will be released to
-var releaseFilesPattern = `${zoweReleaseJsonObject.zowe.to}/org/zowe/${releaseVersion}/*`
+var releaseFilesPattern = `${zoweReleaseJsonObject['zowe']['to']}/org/zowe/${releaseVersion}/*`
 
 // check artifactory release pattern
 console.log(`Checking if ${releaseVersion} already exists in Artifactory ...`)
@@ -6636,46 +6636,44 @@ if (github.tagExistsRemote(`v${releaseVersion}`)) {
 
 // start to build up a new json derived from the zowe release json file
 var releaseArtifacts = {}
-releaseArtifacts.zowe = {}
-releaseArtifacts.zowe.target = `zowe-${releaseVersion}.pax`
-releaseArtifacts.zowe.buildName = buildName
-releaseArtifacts.zowe.buildNumber = buildNum
+releaseArtifacts['zowe'] = {}
+releaseArtifacts['zowe']['target'] = `zowe-${releaseVersion}.pax`
+releaseArtifacts['zowe']['buildName'] = buildName
+releaseArtifacts['zowe']['buildNumber'] = buildNum
 
 // get zowe build source artifact
-releaseArtifacts.zowe.source = searchArtifact(
-  `${zoweReleaseJsonObject.zowe.from}/${zoweReleaseJsonObject.zowe.path}/${zoweReleaseJsonObject.zowe.filesAtSource['zowe-*.pax']}`,
+releaseArtifacts['zowe']['source'] = searchArtifact(
+  `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['path']}/${zoweReleaseJsonObject['zowe']['filesAtSource']['zowe-*.pax']}`,
   buildName,
   buildNum
 )
-console.log(`>>>> Found Zowe build ${releaseArtifacts.zowe.source.path}`)
+console.log(`>>>> Found Zowe build ${releaseArtifacts['zowe']['source']['path']}`)
 
 // try to get Zowe build commit hash
-if (releaseArtifacts.zowe.source.props['vcs.revision'][0] != '' ) {
-    releaseArtifacts.zowe.revision = releaseArtifacts.zowe.source.props['vcs.revision'][0]
+if (releaseArtifacts['zowe']['source']['props']['vcs']['revision'][0] != '' ) {
+    releaseArtifacts['zowe']['revision'] = releaseArtifacts['zowe']['source']['props']['vcs']['revision'][0]
 }
 else {
     throw new Error(`Zowe release artifact vcs revision is null`)
 } 
-if (!releaseArtifacts.zowe.revision.match(/^[0-9a-fA-F]{40}$/)) { // if it's a valid SHA-1 commit hash
-  throw new Error(`Cannot extract git revision from build \"${releaseArtifacts.zowe.buildName}/${releaseArtifacts.zowe.buildNumber}\"`)
+if (!releaseArtifacts['zowe']['revision'].match(/^[0-9a-fA-F]{40}$/)) { // if it's a valid SHA-1 commit hash
+  throw new Error(`Cannot extract git revision from build \"${releaseArtifacts['zowe']['buildName']}/${releaseArtifacts['zowe']['buildNumber']}\"`)
 }
-logValidate(`>>[validate 3/???]>> Build ${releaseArtifacts.zowe.buildName}/${releaseArtifacts.zowe.buildNumber} commit hash is ${releaseArtifacts.zowe.revision}, may proceed.`)
-logValidate(`>>[validate 3/???]>> vcs url is ${releaseArtifacts.zowe.source.props['vcs.url'][0]}, vcs revision is ${releaseArtifacts.zowe.revision}`)
+logValidate(`>>[validate 3/???]>> Build ${releaseArtifacts['zowe']['buildName']}/${releaseArtifacts['zowe']['buildNumber']} commit hash is ${releaseArtifacts['zowe']['revision']}, may proceed.`)
 
-// // get SMP/e build
-// try {
-//   def smpeTarSource = pipeline.artifactory.getArtifact([
-//     'pattern'      : "${params.ZOWE_BUILD_REPOSITORY}/${params.ZOWE_BUILD_PATH}/${ZOWE_RELEASE_SMPE_PAX_FILEPATTERN}",
-//     'build-name'   : releaseArtifacts['zowe']['buildName'],
-//     'build-number' : releaseArtifacts['zowe']['buildNumber']
-//   ])
-//   if (smpeTarSource['path']) {
-//     echo ">>> Found SMP/e build ${smpeTarSource['path']}."
-//     def FMID = smpeTarSource['path'].split('/').last().split('-').first()
-//     releaseArtifacts['smpe-zip'] = [:]
-//     releaseArtifacts['smpe-zip']['source'] = smpeTarSource
-//     releaseArtifacts['smpe-zip']['target'] = "zowe-smpe-package-${params.ZOWE_RELEASE_VERSION}.zip".toString()
-//   }
+// get SMP/e build
+try {
+  var smpeZipSource = searchArtifact(
+    `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['path']}/${zoweReleaseJsonObject['zowe']['filesAtSource']['zowe-smpe-*.zip']}`,
+    buildName,
+    buildNum
+  )
+  if (smpeZipSource['path']) {
+    releaseArtifacts['smpe-zip'] = {}
+    releaseArtifacts['smpe-zip']['source'] = smpeZipSource
+    releaseArtifacts['smpe-zip']['target'] = `zowe-smpe-package-${releaseVersion}.zip`
+    logValidate(`>>[validate 4/???]>> Found SMP/e build ${smpeZipSource['path']}, may proceed.`)
+  }
 
 //   try {
 //     def smpePtfPromote = pipeline.artifactory.getArtifact([
@@ -6689,10 +6687,9 @@ logValidate(`>>[validate 3/???]>> vcs url is ${releaseArtifacts.zowe.source.prop
 //     echo ">>> no SMP/e promote tar found in the build, throwing error and exit"
 //     error "no SMP/e promote tar found in the build"
 //   }
-// } catch (e1) {
-//   echo ">>> no SMP/e zip found in the build, throwing error and exit"
-//   error "no SMP/e zip found in the build"
-// }
+} catch (e1) {
+  throw new Error(`>>> no SMP/e zip found in the build, throwing error and exit`)
+}
 
 // // get Docker images - amd64
 // try {
@@ -6871,7 +6868,7 @@ logValidate(`>>[validate 3/???]>> vcs url is ${releaseArtifacts.zowe.source.prop
 //         "https://github.com/zowe/zowe-install-packaging.git"
 //       ]
 //     }
-//   }
+//   }  
 function searchArtifact(pattern, buildName, buildNum) {
     if ((buildName == '' && buildNum != '') || (buildName != '' && buildNum == '')) {
         throw new Error ('Function searchArtifact must have neither buildName or buildNum, or both')
