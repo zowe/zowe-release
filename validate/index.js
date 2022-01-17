@@ -42,7 +42,7 @@ var releaseFilesPattern = `${zoweReleaseJsonObject.zowe.to}/org/zowe/${releaseVe
 // check artifactory release pattern
 console.log(`Checking if ${releaseVersion} already exists in Artifactory ...`)
 var searchResult = searchArtifact(releaseFilesPattern)
-if (!searchResult.path || searchResult.path == '' || searchResult.path == null ) {
+if (!searchResult || searchResult == null || searchResult == '') {
     console.log(`>>[validate 1/???]>> Target artifactory folder ${releaseFilesPattern} doesn\'t exist, may proceed.`)
 } else {
     throw new Error(`Zowe version ${releaseVersion} already exists (${releaseFilesPattern})`)
