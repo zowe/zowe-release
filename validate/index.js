@@ -68,9 +68,6 @@ releaseArtifacts.zowe.source = searchArtifact(
   buildName,
   buildNum
 )
-console.log(`AAAAAAA ${releaseArtifacts.zowe.source}`)
-console.log(`BBBBBBB ${releaseArtifacts.zowe.source.props}`)
-console.log(`CCCCCCC ${releaseArtifacts.zowe.source['props']}`)
 console.log(`>>>> Found Zowe build ${releaseArtifacts.zowe.source.path}`)
 
 // try to get Zowe build commit hash
@@ -84,7 +81,7 @@ if (!releaseArtifacts.zowe.revision.match(/^[0-9a-fA-F]{40}$/)) { // if it's a v
   throw new Error(`Cannot extract git revision from build \"${releaseArtifacts.zowe.buildName}/${releaseArtifacts.zowe.buildNumber}\"`)
 }
 console.log(`>>[validate 3/???]>> Build ${releaseArtifacts.zowe.buildName}/${releaseArtifacts.zowe.buildNumber} commit hash is ${releaseArtifacts.zowe.revision}, may proceed.`)
-console.log(`>>[validate 3/???]>> BuildInfo vcsUrl is ${releaseArtifacts.zowe.source.props['vcs.url'][0]}, vcs revision is ${releaseArtifacts.zowe.revision}`)
+console.log(`>>[validate 3/???]>> vcs url is ${releaseArtifacts.zowe.source.props['vcs.url'][0]}, vcs revision is ${releaseArtifacts.zowe.revision}`)
 
 // // get SMP/e build
 // try {
