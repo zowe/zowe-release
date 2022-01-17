@@ -76,4 +76,6 @@ jobs:
           build-name: ${{ github.event.inputs.zowe-build-name }}
           build-num: ${{ github.event.inputs.zowe-build-number }}
           release-version: ${{ github.event.inputs.zowe-release-version }}
-    
+        env:
+          DEBUG: 'zowe-release:validate'
+

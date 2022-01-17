@@ -6589,7 +6589,9 @@ var __webpack_exports__ = {};
 
 const core = __nccwpck_require__(4425)
 const { github, utils } = __nccwpck_require__(9089)
-const fs = __nccwpck_require__(5747);
+const fs = __nccwpck_require__(5747)
+const Debug = __nccwpck_require__(8307)
+const debug = Debug('zowe-release:validate')
 
 // Defaults
 const projectRootPath = process.env.GITHUB_WORKSPACE
@@ -6849,6 +6851,7 @@ function searchArtifact(pattern, buildName, buildNum) {
         cmd += ` --build="${buildName}/${buildNum}"`
     }
     cmd += ` ${pattern} | jq -r '.[].path'`
+    debug(`searchArtifact full command: ${cmd}`)
     return utils.sh(cmd)
 }
 })();

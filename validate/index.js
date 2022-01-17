@@ -10,7 +10,9 @@
 
 const core = require('@actions/core')
 const { github, utils } = require('zowe-common')
-const fs = require('fs');
+const fs = require('fs')
+const Debug = require('debug')
+const debug = Debug('zowe-release:validate')
 
 // Defaults
 const projectRootPath = process.env.GITHUB_WORKSPACE
@@ -270,5 +272,6 @@ function searchArtifact(pattern, buildName, buildNum) {
         cmd += ` --build="${buildName}/${buildNum}"`
     }
     cmd += ` ${pattern} | jq -r '.[].path'`
+    debug(`searchArtifact full command: ${cmd}`)
     return utils.sh(cmd)
 }
