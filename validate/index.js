@@ -41,17 +41,18 @@ var releaseFilesPattern = `${zoweReleaseJsonObject.zowe.to}/org/zowe/${releaseVe
 
 // check artifactory release pattern
 console.log(`Checking if ${releaseVersion} already exists in Artifactory ...`)
-if (searchArtifact(releaseFilesPattern) == '') {
-    console.log(`>>>> Target artifactory folder ${releaseFilesPattern} doesn\'t exist, may proceed.`)
+var searchResult = searchArtifact(releaseFilesPattern)
+if (!searchResult.path || searchResult.path == '' || searchResult.path == null ) {
+    console.log(`>>[validate 1/???]>> Target artifactory folder ${releaseFilesPattern} doesn\'t exist, may proceed.`)
 } else {
-    core.setFailed(`Zowe version ${releaseVersion} already exists (${releaseFilesPattern})`)
+    throw new Error(`Zowe version ${releaseVersion} already exists (${releaseFilesPattern})`)
 }
 
 // check if tag already exists
 if (github.tagExistsRemote(`v${releaseVersion}`)) {
-    core.setFailed(`Repository tag v${releaseVersion} already exists.`)
+    throw new Error(`Repository tag v${releaseVersion} already exists.`)
 } else {
-    console.log(`>>>> Repository tag v${releaseVersion} doesn't exist, may proceed.`)
+    console.log(`>>[validate 2/???]>> Repository tag v${releaseVersion} doesn't exist, may proceed.`)
 }
 
 // start to build up a new json derived from the zowe release json file
@@ -62,26 +63,28 @@ releaseArtifacts.zowe.buildName = buildName
 releaseArtifacts.zowe.buildNumber = buildNum
 
 // get zowe build source artifact
-releaseArtifacts.zowe.source = {}
-releaseArtifacts.zowe.source.path = searchArtifact(
+releaseArtifacts.zowe.source = searchArtifact(
   `${zoweReleaseJsonObject.zowe.from}/${zoweReleaseJsonObject.zowe.path}/${zoweReleaseJsonObject.zowe.filesAtSource['zowe-*.pax']}`,
   buildName,
   buildNum
 )
-console.log(`>>> Found Zowe build ${releaseArtifacts.zowe.source.path}.`)
+console.log(`AAAAAAA ${releaseArtifacts.zowe.source}`)
+console.log(`BBBBBBB ${releaseArtifacts.zowe.source.props}`)
+console.log(`CCCCCCC ${releaseArtifacts.zowe.source['props']}`)
+console.log(`>>>> Found Zowe build ${releaseArtifacts.zowe.source.path}`)
 
-// // try to get Zowe build commit hash
-// def zoweBuildInfo = pipeline.artifactory.getBuildInfo(
-//   releaseArtifacts['zowe']['buildName'],
-//   releaseArtifacts['zowe']['buildNumber'],
-//   "zowe-install-packaging"
-// )
-// releaseArtifacts['zowe']['revision'] = zoweBuildInfo && zoweBuildInfo['vcsRevision']
-// if (!("${releaseArtifacts['zowe']['revision']}" ==~ /^[0-9a-fA-F]{40}$/)) { // if it's a SHA-1 commit hash
-//   error "Cannot extract git revision from build \"${releaseArtifacts['zowe']['buildName']}/${releaseArtifacts['zowe']['buildNumber']}\""
-// }
-// echo ">>>> Build ${releaseArtifacts['zowe']['buildName']}/${releaseArtifacts['zowe']['buildNumber']} commit hash is ${releaseArtifacts['zowe']['revision']}, may proceed."
-// echo ">>>> BuildInfo vcsUrl is ${zoweBuildInfo['vcsUrl']}, vcs revision is ${zoweBuildInfo['vcsRevision']}"
+// try to get Zowe build commit hash
+if (releaseArtifacts.zowe.source.props['vcs.revision'][0] != '' ) {
+    releaseArtifacts.zowe.revision = releaseArtifacts.zowe.source.props['vcs.revision'][0]
+}
+else {
+    throw new Error(`Zowe release artifact vcs revision is null`)
+} 
+if (!releaseArtifacts.zowe.revision.match(/^[0-9a-fA-F]{40}$/)) { // if it's a valid SHA-1 commit hash
+  throw new Error(`Cannot extract git revision from build \"${releaseArtifacts.zowe.buildName}/${releaseArtifacts.zowe.buildNumber}\"`)
+}
+console.log(`>>[validate 3/???]>> Build ${releaseArtifacts.zowe.buildName}/${releaseArtifacts.zowe.buildNumber} commit hash is ${releaseArtifacts.zowe.revision}, may proceed.`)
+console.log(`>>[validate 3/???]>> BuildInfo vcsUrl is ${releaseArtifacts.zowe.source.props['vcs.url'][0]}, vcs revision is ${releaseArtifacts.zowe.revision}`)
 
 // // get SMP/e build
 // try {
@@ -262,7 +265,37 @@ console.log(`>>> Found Zowe build ${releaseArtifacts.zowe.source.path}.`)
 // // echo "
 
 
-
+// This function will return a json object
+// example:
+// {
+//     "path": "libs-snapshot-local/org/zowe/1.27.0-RC/zowe-1.27.0-rc-214-20220114164537.pax",
+//     "type": "file",
+//     "size": 409941504,
+//     "created": "2022-01-14T16:45:56.528Z",
+//     "modified": "2022-01-14T16:45:46.223Z",
+//     "sha1": "e0de3a175aa45328fbe3bef115fb4c9686d790a0",
+//     "md5": "cd01c8511b1d0b232007c42a580e4de1",
+//     "props": {
+//       "build.name": [
+//         "zowe-install-packaging/rc"
+//       ],
+//       "build.number": [
+//         "214"
+//       ],
+//       "build.timestamp": [
+//         "1642177162837"
+//       ],
+//       "vcs.branch": [
+//         "rc"
+//       ],
+//       "vcs.revision": [
+//         "6411a292cb627d67c1386e6a07e9c22e64a4a20f"
+//       ],
+//       "vcs.url": [
+//         "https://github.com/zowe/zowe-install-packaging.git"
+//       ]
+//     }
+//   }
 function searchArtifact(pattern, buildName, buildNum) {
     if ((buildName == '' && buildNum != '') || (buildName != '' && buildNum == '')) {
         throw new Error ('Function searchArtifact must have neither buildName or buildNum, or both')
@@ -271,7 +304,13 @@ function searchArtifact(pattern, buildName, buildNum) {
     if (buildName && buildNum) {
         cmd += ` --build="${buildName}/${buildNum}"`
     }
-    cmd += ` ${pattern} | jq -r '.[].path'`
+    cmd += ` ${pattern} | jq -r '.[]'`
     debug(`searchArtifact full command: ${cmd}`)
-    return utils.sh(cmd)
+    var out = utils.sh(cmd)
+    if (!out || out == null || out == '') {
+        return
+    }
+    else {
+        return JSON.parse(out)
+    }
 }

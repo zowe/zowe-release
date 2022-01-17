@@ -8,7 +8,7 @@ on:
     inputs:
       zowe-artifact-dir:
         description: 'ZOWE_ARTIFACT_DIR'
-        default: '1.xx.0-RC'
+        default: '1.27.0-RC'
         required: true
       zowe-build-name:
         description: 'ZOWE_BUILD_NAME'
@@ -17,8 +17,10 @@ on:
       zowe-build-number:
         description: 'ZOWE_BUILD_NUMBER'
         required: true
+        default: '214'
       zowe-release-version:
         description: 'ZOWE_RELEASE_VERSION'
+        default: '1.27.0-RC9'
         required: true
       force-sign:
         type: boolean
@@ -76,6 +78,6 @@ jobs:
           build-name: ${{ github.event.inputs.zowe-build-name }}
           build-num: ${{ github.event.inputs.zowe-build-number }}
           release-version: ${{ github.event.inputs.zowe-release-version }}
-        env:
-          DEBUG: 'zowe-release:validate'
+        # env:
+        #   DEBUG: 'zowe-release:validate'
 
