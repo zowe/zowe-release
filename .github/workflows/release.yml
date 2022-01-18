@@ -56,7 +56,7 @@ jobs:
 
       - name: '[Validate 1] Validate zowe release version input'
         run: |
-          zowe_release_version="${{ github.event.inputs.zowe-release-version }}"
+          zowe_release_version=${{ github.event.inputs.zowe-release-version }}
           echo "Checking if $zowe_release_version is a valid semantic version ..."
           # validate release version scheme
           # thanks semver/semver, this regular expression comes from
@@ -64,6 +64,8 @@ jobs:
           if [[ "$zowe_release_version" =~ ^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$ ]]; then
             echo "$zowe_release_version is not a valid semantic version."
             exit 1
+          else
+            echo "YES!"
           fi
           if [[ "$zowe_release_version" =~ ^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$ ]]; then
             echo IS_FORMAL_RELEASE="true" >> $GITHUB_ENV
