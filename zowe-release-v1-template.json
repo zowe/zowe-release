@@ -19,7 +19,7 @@
     "zowe-cli" : {
         "from" : "libs-release-local",
         "to" : "libs-release-local",
-        "path" : "org/zowe/cli",
+        "path" : "org/zowe/cli/*",
         "filesAtSource": {
             "zowe-cli-package-1*.zip": "zowe-cli-package-1*.zip",
             "zowe-cli-plugins-1*.zip": "zowe-cli-plugins-1*.zip"
