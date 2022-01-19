@@ -54,27 +54,7 @@ jobs:
           echo "Current zowe-release-v1.json is:"
           cat zowe-release-v1.json
 
-      - name: '[Validate 1] Validate zowe release version input'
-        run: |
-          zowe_release_version=${{ github.event.inputs.zowe-release-version }}
-          echo "Checking if $zowe_release_version is a valid semantic version ..."
-          # validate release version scheme
-          # thanks semver/semver, this regular expression comes from
-          # https://github.com/semver/semver/issues/232#issuecomment-405596809
-          if [[ "$zowe_release_version" =~ ^([0-9]*)\.([0-9]*)\.([0-9]*)(?:-((?:[0-9]*|*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:[0-9]*|*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$ ]]; then
-            echo "$zowe_release_version is not a valid semantic version."
-            exit 1
-          else
-            echo "YES!"
-          fi
-          if [[ "$zowe_release_version" =~ ^([0-9]*)\.([0-9]*)\.([0-9]*)$ ]]; then
-            echo IS_FORMAL_RELEASE="true" >> $GITHUB_ENV
-            echo ">>>> Version $zowe_release_version is considered as a FORMAL RELEASE."
-          else
-            echo ">>>> Version $zowe_release_version is NOT considered as a FORMAL RELEASE."
-          fi
-
-      - name: '[Validate 2] Validate zowe artifacts'
+      - name: 'Validate zowe artifacts'
         uses: ./validate
         with:
           build-name: ${{ github.event.inputs.zowe-build-name }}
@@ -87,7 +67,7 @@ jobs:
         timeout-minutes: 10
         if: env.IS_FORMAL_RELEASE == true
         run: |
-          export GITHUB_USERNAME=${{ secrets.ZOWE_ROBOT_USER }} 
-          export GITHUB_PASSWORD=${{ secrets.ZOWE_ROBOT_TOKEN }} 
+          export GITHUB_USERNAME=${{ secrets.ZOWE_ROBOT_USER }}
+          export GITHUB_PASSWORD=${{ secrets.ZOWE_ROBOT_TOKEN }}
           ./prepare_source_zip.sh
           zip -r .release/zowe_sources-${{ github.event.inputs.zowe-release-version }}.zip .release/source_zip

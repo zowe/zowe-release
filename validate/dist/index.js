@@ -6606,6 +6606,26 @@ utils.mandatoryInputCheck(buildName, 'build-name')
 utils.mandatoryInputCheck(buildNum, 'build-num')
 utils.mandatoryInputCheck(releaseVersion, 'release-version')
 
+
+console.log(`Checking if ${releaseVersion} is a valid semantic version ...`)
+// validate release version scheme
+// thanks semver/semver, this regular expression comes from
+// https://github.com/semver/semver/issues/232#issuecomment-405596809
+// in javascript regex \d means [0-9]; in bash you should do [0-9]
+if (releaseVersion.match(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/)) {
+    logValidate('YES')
+} else {
+    throw new Error(`${releaseVersion} is not a valid semantic version.`)
+}
+
+if (releaseVersion.match(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/)) {
+    core.exportVariable(IS_FORMAL_RELEASE, 'true')
+    console.log(`>>>> Version ${releaseVersion} is considered as a FORMAL RELEASE.`)
+}
+else {
+    console.log(`>>>> Version ${releaseVersion} is NOT considered as a FORMAL RELEASE.`)
+}
+
 // init
 var zoweReleaseJsonFile = 'zowe-release-v@.json'
 if (releaseVersion.startsWith('1')) {
