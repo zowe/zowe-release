@@ -65,7 +65,7 @@ jobs:
 
       - name: 'Generate source build - formal release only!'
         timeout-minutes: 10
-        if: env.IS_FORMAL_RELEASE == true
+        if: env.IS_FORMAL_RELEASE == 'true'
         run: |
           export GITHUB_USERNAME=${{ secrets.ZOWE_ROBOT_USER }}
           export GITHUB_PASSWORD=${{ secrets.ZOWE_ROBOT_TOKEN }}
