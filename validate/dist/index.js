@@ -6619,7 +6619,7 @@ if (releaseVersion.match(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-
 }
 
 if (releaseVersion.match(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/)) {
-    core.exportVariable(IS_FORMAL_RELEASE, 'true')
+    core.exportVariable('IS_FORMAL_RELEASE', 'true')
     console.log(`>>>> Version ${releaseVersion} is considered as a FORMAL RELEASE.`)
 }
 else {
