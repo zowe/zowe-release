@@ -69,5 +69,5 @@ jobs:
         run: |
           export GITHUB_USERNAME=${{ secrets.ZOWE_ROBOT_USER }}
           export GITHUB_PASSWORD=${{ secrets.ZOWE_ROBOT_TOKEN }}
-          ./prepare_source_zip.sh
+          ./.dependency/prepare_source_zip.sh
           zip -r .release/zowe_sources-${{ github.event.inputs.zowe-release-version }}.zip .release/source_zip
