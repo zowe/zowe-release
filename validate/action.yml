@@ -10,6 +10,9 @@ inputs:
   release-version:
     description: zowe release version
     required: true
+outputs:
+  PROMOTE_JSON_FILE_NAME_FULL:
+    description: the full file path to be used in promote step
   
 runs:
   using: 'node12'

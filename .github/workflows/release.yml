@@ -20,7 +20,7 @@ on:
         default: '214'
       zowe-release-version:
         description: 'ZOWE_RELEASE_VERSION'
-        default: '1.99.0'
+        default: '9.99.0'
         required: true
       force-sign:
         type: boolean
@@ -33,6 +33,7 @@ on:
 
 env:
   ZOWE_INSTALL_PACKAGING_REPO: zowe/zowe-install-packaging
+  ZOWE_RELEASE_JSON_PATTERN: zowe-release-v@.json
 
 jobs:
   promote-and-release:
@@ -55,6 +56,7 @@ jobs:
           cat zowe-release-v1.json
 
       - name: 'Validate zowe artifacts'
+        id: validate
         uses: ./validate
         with:
           build-name: ${{ github.event.inputs.zowe-build-name }}
@@ -71,3 +73,10 @@ jobs:
           export GITHUB_PASSWORD=${{ secrets.ZOWE_ROBOT_TOKEN }}
           ./.dependency/prepare_source_zip.sh
           zip -r .release/zowe_sources-${{ github.event.inputs.zowe-release-version }}.zip .release/source_zip
+
+      - name: 'Promote'
+        timeout-minutes: 10
+        uses: ./promote
+        with:
+          promote-json-file-name: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
+
