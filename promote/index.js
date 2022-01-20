@@ -37,20 +37,23 @@ var zoweReleaseJsonObject = JSON.parse(fs.readFileSync(projectRootPath + '/' + z
 // this is the target Artifactory path will be released to
 var targetPath = `${zoweReleaseJsonObject['zowe']['to']}/org/zowe/${releaseVersion}`
 
+var promoteJsonObject = JSON.parse(fs.readFileSync(promoteJsonFileNameFull))
 
+for (let [component, properties] of Object.entries(promoteJsonObject)) {
+    var buildTimestamp = properties['source']['props']['build.timestamp']
+    var buildName = properties['source']['props']['build.name']
+    var buildNumber = properties['source']['props']['build.number']
+    var sourceFullPath = `${properties['source']['path']}`
+    var targetFullPath = `${targetPath}/${properties['target']}`
 
-// def buildTimestamp = source.containsKey('build.timestamp') ? source['build.timestamp'] : ''
-// def buildName      = source.containsKey('build.name') ? source['build.name'] : ''
-// def buildNumber    = source.containsKey('build.number') ? source['build.number'] : ''
-
-// def targetFullPath = "${targetPath}/${targetName}"
-
-// // variables prepared, ready to promote
-// this.steps.echo "Promoting artifact: ${source['path']}\n" +
-//                 "- to              : ${targetFullPath}\n" +
-//                 "- build name      : ${buildName}\n" +
-//                 "- build number    : ${buildNumber}\n" +
-//                 "- build timestamp : ${buildTimestamp}\n"
+    console.log(`Promoting artifact ${component}
+- from              :  ${sourceFullPath}
+- to                :  ${targetFullPath}
+- build name        :  ${buildName}
+- build number      :  ${buildNumber}
+- build timestamp   :  ${buildTimestamp}
+`)
+}
 
 // // promote (copy) artifact
 // def promoteResult = this.steps.sh(
