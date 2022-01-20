@@ -74,7 +74,7 @@ jobs:
           ./.dependency/prepare_source_zip.sh
           zip -r .release/zowe_sources-${{ github.event.inputs.zowe-release-version }}.zip .release/source_zip
 
-      - name: 'Promote'
+      - name: 'Promote (jfrog rt copy)'
         timeout-minutes: 10
         uses: ./promote
         with:
