@@ -6434,6 +6434,14 @@ module.exports = utils;
 
 /***/ }),
 
+/***/ 5946:
+/***/ ((module) => {
+
+module.exports = eval("require")("@actions/github");
+
+
+/***/ }),
+
 /***/ 8243:
 /***/ ((module) => {
 
@@ -6588,12 +6596,12 @@ var __webpack_exports__ = {};
  */
 
 const core = __nccwpck_require__(4425)
-// const actionsGithub = require('@actions/github')
+const actionsGithub = __nccwpck_require__(5946)
 const { github, utils } = __nccwpck_require__(9089)
 const fs = __nccwpck_require__(5747)
 const Debug = __nccwpck_require__(8307)
 const debug = Debug('zowe-release:promote')
-// const context = actionsGithub.context
+const context = actionsGithub.context
 
 // Defaults
 const projectRootPath = process.env.GITHUB_WORKSPACE
@@ -6652,8 +6660,6 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
         throw new Error("Artifact is not promoted successfully.")
     }
 
-    utils.sh('jfrog rt bp') //this line is just to update current build name and number
-
     // prepare artifact property
     var props = []
     if (buildName) {
@@ -6667,8 +6673,8 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
     }
 
     // get current release pipeline run name and number
-    // props.push(`build.name=${context.repo.repo}`)
-    // props.push(`build.number=${context.runNumber}`)
+    props.push(`build.name=${context.repo.repo}`)
+    props.push(`build.number=${context.runNumber}`)
     console.log(`Updating artifact properties:\n${props.join('\n')}`)
 
     // update artifact property

@@ -9,12 +9,12 @@
  */
 
 const core = require('@actions/core')
-// const actionsGithub = require('@actions/github')
+const actionsGithub = require('@actions/github')
 const { github, utils } = require('zowe-common')
 const fs = require('fs')
 const Debug = require('debug')
 const debug = Debug('zowe-release:promote')
-// const context = actionsGithub.context
+const context = actionsGithub.context
 
 // Defaults
 const projectRootPath = process.env.GITHUB_WORKSPACE
@@ -73,8 +73,6 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
         throw new Error("Artifact is not promoted successfully.")
     }
 
-    utils.sh('jfrog rt bp') //this line is just to update current build name and number
-
     // prepare artifact property
     var props = []
     if (buildName) {
@@ -88,8 +86,8 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
     }
 
     // get current release pipeline run name and number
-    // props.push(`build.name=${context.repo.repo}`)
-    // props.push(`build.number=${context.runNumber}`)
+    props.push(`build.name=${context.repo.repo}`)
+    props.push(`build.number=${context.runNumber}`)
     console.log(`Updating artifact properties:\n${props.join('\n')}`)
 
     // update artifact property
