@@ -9,12 +9,12 @@
  */
 
 const core = require('@actions/core')
-const actionsGithub = require('@actions/github')
+// const actionsGithub = require('@actions/github')
 const { github, utils } = require('zowe-common')
 const fs = require('fs')
 const Debug = require('debug')
 const debug = Debug('zowe-release:promote')
-const context = actionsGithub.context
+// const context = actionsGithub.context
 
 // Defaults
 const projectRootPath = process.env.GITHUB_WORKSPACE

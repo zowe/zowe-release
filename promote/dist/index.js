@@ -6434,14 +6434,6 @@ module.exports = utils;
 
 /***/ }),
 
-/***/ 5946:
-/***/ ((module) => {
-
-module.exports = eval("require")("@actions/github");
-
-
-/***/ }),
-
 /***/ 8243:
 /***/ ((module) => {
 
@@ -6596,12 +6588,12 @@ var __webpack_exports__ = {};
  */
 
 const core = __nccwpck_require__(4425)
-const actionsGithub = __nccwpck_require__(5946)
+// const actionsGithub = require('@actions/github')
 const { github, utils } = __nccwpck_require__(9089)
 const fs = __nccwpck_require__(5747)
 const Debug = __nccwpck_require__(8307)
 const debug = Debug('zowe-release:promote')
-const context = actionsGithub.context
+// const context = actionsGithub.context
 
 // Defaults
 const projectRootPath = process.env.GITHUB_WORKSPACE
