@@ -78,5 +78,5 @@ jobs:
         timeout-minutes: 10
         uses: ./promote
         with:
-          promote-json-file-name: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
+          promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
 
