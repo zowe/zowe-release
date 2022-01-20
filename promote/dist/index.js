@@ -13478,8 +13478,6 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
         throw new Error("Artifact property is not updated successfully.")
     }
 }
-
-// return targetFullPath
 })();
 
 module.exports = __webpack_exports__;
