@@ -73,6 +73,8 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
         throw new Error("Artifact is not promoted successfully.")
     }
 
+   // utils.sh('jfrog rt bp') //this line is just to update current build name and number
+
     // prepare artifact property
     var props = []
     if (buildName) {
@@ -106,8 +108,6 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
         setPropsResultObject['totals']['success'] != 1 || setPropsResultObject['totals']['failure'] != 0) {
         throw new Error("Artifact property is not updated successfully.")
     }
-
-    utils.sh('jfrog rt bp') //this line is just to update current build name and number
 }
 
 // return targetFullPath
