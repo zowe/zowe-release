@@ -6434,6 +6434,14 @@ module.exports = utils;
 
 /***/ }),
 
+/***/ 5946:
+/***/ ((module) => {
+
+module.exports = eval("require")("@actions/github");
+
+
+/***/ }),
+
 /***/ 8243:
 /***/ ((module) => {
 
@@ -6588,10 +6596,12 @@ var __webpack_exports__ = {};
  */
 
 const core = __nccwpck_require__(4425)
+const actionsGithub = __nccwpck_require__(5946)
 const { github, utils } = __nccwpck_require__(9089)
 const fs = __nccwpck_require__(5747)
 const Debug = __nccwpck_require__(8307)
 const debug = Debug('zowe-release:promote')
+const context = actionsGithub.context
 
 // Defaults
 const projectRootPath = process.env.GITHUB_WORKSPACE
@@ -6632,56 +6642,60 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
 - build number      :  ${buildNumber}
 - build timestamp   :  ${buildTimestamp}
 `)
+
+    // promote (copy) artifact
+    var cmd = `jfrog rt copy --flat "${sourceFullPath}" "${targetFullPath}"`
+    debug(cmd)
+    var promoteResult = utils.sh(cmd)
+    
+    // validate result
+    var promoteResultObject = JSON.parse(promoteResult)
+    console.log(`Artifact promoting result:
+- status  : ${promoteResultObject['status']}
+- success : ${promoteResultObject['totals']['success']}
+- failure : ${promoteResultObject['totals']['failure']}
+`)
+    if (promoteResultObject['status'] != 'success' ||
+        promoteResultObject['totals']['success'] != 1 || promoteResultObject['totals']['failure'] != 0) {
+        throw new Error("Artifact is not promoted successfully.")
+    }
+
+    // prepare artifact property
+    var props = []
+    if (buildName) {
+        props.push(`build.parentName=${buildName}`)
+    }
+    if (buildNumber) {
+        props.push(`build.parentNumber=${buildNumber}`)
+    }
+    if (buildTimestamp) {
+        props.push(`build.timestamp=${buildTimestamp}`)
+    }
+
+    // get current release pipeline run name and number
+    // props.push(`build.name=${context.repo.repo}`)
+    // props.push(`build.number=${context.runNumber}`)
+    console.log(`Updating artifact properties:\n${props.join('\n')}`)
+
+    // update artifact property
+    var cmd1 = `jfrog rt set-props "${targetFullPath}" "${props.join(';')}"`
+    debug(cmd1)
+    var setPropsResult = utils.sh(cmd1)
+
+    // validate result
+    var setPropsResultObject = JSON.parse(setPropsResult)
+    console.log(`Artifact set props result:
+- status  : ${setPropsResultObject['status']}
+- success : ${setPropsResultObject['totals']['success']}
+- failure : ${setPropsResultObject['totals']['failure']}
+`)
+    if (setPropsResultObject['status'] != 'success' ||
+        setPropsResultObject['totals']['success'] != 1 || setPropsResultObject['totals']['failure'] != 0) {
+        throw new Error("Artifact property is not updated successfully.")
+    }
+
+    utils.sh('jfrog rt bp') //this line is just to update current build name and number
 }
-
-// // promote (copy) artifact
-// def promoteResult = this.steps.sh(
-//     script: "jfrog rt copy --flat \"${source.path}\" \"${targetFullPath}\"",
-//     returnStdout: true
-// ).trim()
-
-// // validate result
-// def promoteResultObject = this.steps.readJSON(text: promoteResult)
-// this.steps.echo "Artifact promoting result:\n" +
-//     "- status  : ${promoteResultObject['status']}\n" +
-//     "- success : ${promoteResultObject['totals']['success']}\n" +
-//     "- failure : ${promoteResultObject['totals']['failure']}"
-// if (promoteResultObject['status'] != 'success' ||
-//     promoteResultObject['totals']['success'] != 1 || promoteResultObject['totals']['failure'] != 0) {
-//     throw new ArtifactException("Artifact is not promoted successfully.")
-// }
-
-// // prepare artifact property
-// def props = []
-// def currentBuildName = env.JOB_NAME
-// props << "build.name=${currentBuildName}"
-// props << "build.number=${env.BUILD_NUMBER}"
-// if (buildName) {
-//     props << "build.parentName=${buildName}"
-// }
-// if (buildNumber) {
-//     props << "build.parentNumber=${buildNumber}"
-// }
-// if (buildTimestamp) {
-//     props << "build.timestamp=${buildTimestamp}"
-// }
-
-// // update artifact property
-// this.steps.echo "Updating artifact properties:\n${props.join("\n")}"
-
-// def setPropsResult = this.steps.sh(
-//     script: "jfrog rt set-props \"${targetFullPath}\" \"" + props.join(';') + "\"",
-//     returnStdout: true
-// ).trim()
-// def setPropsResultObject = this.steps.readJSON(text: setPropsResult)
-// this.steps.echo "Artifact promoting result:\n" +
-//     "- status  : ${setPropsResultObject['status']}\n" +
-//     "- success : ${setPropsResultObject['totals']['success']}\n" +
-//     "- failure : ${setPropsResultObject['totals']['failure']}"
-// if (setPropsResultObject['status'] != 'success' ||
-//     setPropsResultObject['totals']['success'] != 1 || setPropsResultObject['totals']['failure'] != 0) {
-//     throw new ArtifactException("Artifact property is not updated successfully.")
-// }
 
 // return targetFullPath
 })();

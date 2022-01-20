@@ -1,4 +1,4 @@
-name: Zowe Release Pipeline
+name: Zowe Release
 on:
   # workflow_call: TODO
   #   inputs:    
@@ -80,3 +80,5 @@ jobs:
         with:
           promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
           release-version: ${{ github.event.inputs.zowe-release-version }}
+        env:
+          DEBUG: 'zowe-release:promote'
