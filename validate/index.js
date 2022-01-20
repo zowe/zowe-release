@@ -233,7 +233,7 @@ if (cliPackages['path']) {
 
 // get CLI PLUGINS builds source artifact
 var cliPlugins = searchArtifact(
-	`${zoweReleaseJsonObject['zowe-cli']['from']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-1*.zip']}`
+	`${zoweReleaseJsonObject['zowe-cli']['from']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-1*.zip']}`
 )
 if (cliPlugins['path']) {
 	releaseArtifacts['cli-plugins'] = {}
