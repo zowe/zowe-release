@@ -86,7 +86,7 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
     }
 
     // get current release pipeline run name and number
-    props.push(`build.name=${context.repo.repo}`)
+    props.push(`build.name=${context.repo.repo}/${context.ref.replace('refs/heads/','')}`)
     props.push(`build.number=${context.runNumber}`)
     console.log(`Updating artifact properties:\n${props.join('\n')}`)
 
