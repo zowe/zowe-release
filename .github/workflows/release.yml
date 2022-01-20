@@ -20,7 +20,7 @@ on:
         default: '214'
       zowe-release-version:
         description: 'ZOWE_RELEASE_VERSION'
-        default: '9.99.0'
+        default: '1.99.0'
         required: true
       force-sign:
         type: boolean
