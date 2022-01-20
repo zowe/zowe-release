@@ -79,4 +79,4 @@ jobs:
         uses: ./promote
         with:
           promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
-
+          release-version: ${{ github.event.inputs.zowe-release-version }}
