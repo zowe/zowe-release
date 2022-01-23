@@ -91,11 +91,16 @@ jobs:
 
       - name: 'Download released artifacts'
         run: |
+          GREEN='\033[0;32m'
+          RED='\033[0;31m'
+          NC='\033[0m'
           mkdir -p .release
           success_count=$(jfrog rt download --threads 10 --spec ${{ env.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }} | jq -r ".totals.success")
           if [[ -z "$success_count" ]] || [[ "$success_count" != "9" ]]; then
-            echo "missing some release artifacts, I have only found $success_count"
+            printf "${RED}\nmissing some release artifacts, I have only found $success_count ${NC}"
             exit 1
+          else
+            printf "${GREEN}\n I have downloaded $success_count artifacts, looks okay, may proceed. ${NC}"
           fi
 
 
