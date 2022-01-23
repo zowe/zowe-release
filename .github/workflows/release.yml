@@ -92,4 +92,10 @@ jobs:
       - name: 'Download released artifacts'
         run: |
           mkdir -p .release
-          jfrog rt download --spec ${{ env.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }}
+          success_count=$(jfrog rt download --threads 10 --spec ${{ env.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }} | jq -r ".totals.success")
+          if [[ -z "$success_count" ]] || [[ "$success_count" != "9" ]]; then
+            echo "missing some release artifacts, I have only found $success_count"
+            exit 1
+          fi
+
+
