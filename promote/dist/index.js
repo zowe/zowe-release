@@ -13494,7 +13494,7 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
 // write downloadSpecJson into a file
 var releaseArtifactsDownloadSpecFileFull = projectRootPath + '/release-artifacts-download-spec.json'
 fs.writeFileSync(releaseArtifactsDownloadSpecFileFull, JSON.stringify(downloadSpecJson, null, 2))
-core.exportVariable('RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE', releaseArtifactsDownloadSpecFileFull)
+core.setOutput('RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE', releaseArtifactsDownloadSpecFileFull)
 })();
 
 module.exports = __webpack_exports__;

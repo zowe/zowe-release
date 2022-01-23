@@ -68,6 +68,10 @@ jobs:
         # env:
         #   DEBUG: 'zowe-release:validate'
 
+       # Above step 'Validate' will generate a file (name is stored in its outputs.PROMOTE_JSON_FILE_NAME_FULL)
+       # file name is: tmp-release-artifacts.json
+       # this can be used in later steps
+
       - name: 'Generate source build - formal release only!'
         timeout-minutes: 10
         if: env.IS_FORMAL_RELEASE == 'true'
@@ -79,6 +83,7 @@ jobs:
 
       - name: 'Promote (jfrog rt copy)'
         timeout-minutes: 10
+        id: promote
         uses: ./promote
         with:
           promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
@@ -86,7 +91,8 @@ jobs:
         # env:
         #   DEBUG: 'zowe-release:promote'
       
-      # promote step above will also create a release artifacts download spec file for next download to consume
+      # promote step above will also create a release artifacts download spec file for next download step to consume
+      # file name is stored in its outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE
       # file name will be: release-artifacts-download-spec.json
 
       - name: 'Download released artifacts'
@@ -96,7 +102,7 @@ jobs:
           RED='\033[0;31m'
           NC='\033[0m'
           mkdir -p .release
-          success_count=$(jfrog rt download --threads 10 --spec ${{ env.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }} | jq -r ".totals.success")
+          success_count=$(jfrog rt download --threads 10 --spec ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }} | jq -r ".totals.success")
           if [[ -z "$success_count" ]] || [[ "$success_count" != "9" ]]; then
             echo -e "${RED}\nmissing some release artifacts, I have only found $success_count"
             exit 1
@@ -104,5 +110,10 @@ jobs:
             echo
             echo -e "${GREEN}I have downloaded $success_count artifacts, looks okay, may proceed.${NC}\n"
           fi
+      
+      - name: 'Sign - formal release only!'
+        if: env.IS_FORMAL_RELEASE == 'true'
+        timeout-minutes: 20
+        uses: ./sign
 
 

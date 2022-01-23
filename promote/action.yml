@@ -7,6 +7,10 @@ inputs:
   release-version:
     description: zowe release version
     required: true
+
+outputs:
+  RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE:
+    description: release artifacts download spec file name
   
 runs:
   using: 'node12'
