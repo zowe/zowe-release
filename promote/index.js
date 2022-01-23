@@ -13,6 +13,7 @@ const actionsGithub = require('@actions/github')
 const { github, utils } = require('zowe-common')
 const fs = require('fs')
 const Debug = require('debug')
+const { captureRejections } = require('events')
 const debug = Debug('zowe-release:promote')
 const context = actionsGithub.context
 
@@ -40,6 +41,9 @@ var zoweReleaseJsonObject = JSON.parse(fs.readFileSync(projectRootPath + '/' + z
 var targetPath = `${zoweReleaseJsonObject['zowe']['to']}/org/zowe/${releaseVersion}`
 
 var promoteJsonObject = JSON.parse(fs.readFileSync(promoteJsonFileNameFull))
+
+// make a jfrog download file spec for later steps
+var downloadSpecJson = {"files":[]}
 
 for (let [component, properties] of Object.entries(promoteJsonObject)) {
     var buildTimestamp = properties['source']['props']['build.timestamp']
@@ -106,4 +110,17 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
         setPropsResultObject['totals']['success'] != 1 || setPropsResultObject['totals']['failure'] != 0) {
         throw new Error("Artifact property is not updated successfully.")
     }
+
+    // make a jfrog download file spec for later steps
+    
+    downloadSpecJson['files'].push({
+        "pattern" : targetFullPath,
+        "target"  : ".release/",
+        "flat"    : "true"
+    })
 }
+
+// write downloadSpecJson into a file
+var releaseArtifactsDownloadSpecFileFull = projectRootPath + '/release-artifacts-download-spec.json'
+fs.writeFileSync(releaseArtifactsDownloadSpecFileFull, JSON.stringify(downloadSpecJson, null, 2))
+core.exportVariable('RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE', releaseArtifactsDownloadSpecFileFull)

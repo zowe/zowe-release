@@ -83,5 +83,13 @@ jobs:
         with:
           promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
           release-version: ${{ github.event.inputs.zowe-release-version }}
-        env:
-          DEBUG: 'zowe-release:promote'
+        # env:
+        #   DEBUG: 'zowe-release:promote'
+      
+      # promote step above will also create a release artifacts download spec file for next download to consume
+      # file name will be: release-artifacts-download-spec.json
+
+      - name: 'Download released artifacts'
+      - run: |
+          mkdir -p .release
+          jfrog rt download --spec ${{ env.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }}

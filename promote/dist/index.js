@@ -13384,6 +13384,7 @@ const actionsGithub = __nccwpck_require__(9048)
 const { github, utils } = __nccwpck_require__(9089)
 const fs = __nccwpck_require__(5747)
 const Debug = __nccwpck_require__(8307)
+const { captureRejections } = __nccwpck_require__(8614)
 const debug = Debug('zowe-release:promote')
 const context = actionsGithub.context
 
@@ -13411,6 +13412,9 @@ var zoweReleaseJsonObject = JSON.parse(fs.readFileSync(projectRootPath + '/' + z
 var targetPath = `${zoweReleaseJsonObject['zowe']['to']}/org/zowe/${releaseVersion}`
 
 var promoteJsonObject = JSON.parse(fs.readFileSync(promoteJsonFileNameFull))
+
+// make a jfrog download file spec for later steps
+var downloadSpecJson = {"files":[]}
 
 for (let [component, properties] of Object.entries(promoteJsonObject)) {
     var buildTimestamp = properties['source']['props']['build.timestamp']
@@ -13477,7 +13481,20 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
         setPropsResultObject['totals']['success'] != 1 || setPropsResultObject['totals']['failure'] != 0) {
         throw new Error("Artifact property is not updated successfully.")
     }
+
+    // make a jfrog download file spec for later steps
+    
+    downloadSpecJson['files'].push({
+        "pattern" : targetFullPath,
+        "target"  : ".release/",
+        "flat"    : "true"
+    })
 }
+
+// write downloadSpecJson into a file
+var releaseArtifactsDownloadSpecFileFull = projectRootPath + '/release-artifacts-download-spec.json'
+fs.writeFileSync(releaseArtifactsDownloadSpecFileFull, JSON.stringify(downloadSpecJson, null, 2))
+core.exportVariable('RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE', releaseArtifactsDownloadSpecFileFull)
 })();
 
 module.exports = __webpack_exports__;
