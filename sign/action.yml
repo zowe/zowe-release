@@ -7,6 +7,15 @@ inputs:
   release-version:
     description: zowe release version
     required: true
+  key-id:
+    description: gpg key id
+    required: true
+  private-key-path:
+    description: location of the private key
+    required: true
+  private-key-passphrase:
+    description: the passphrase of the private key
+    required: true
 
 # outputs:
   

@@ -13396,10 +13396,16 @@ const localReleaseFolder = process.env.LOCAL_RELEASE_FOLDER
 // Gets inputs
 var promoteJsonFileNameFull = core.getInput('promote-json-file-name-full')
 var releaseVersion = core.getInput('release-version')
+const keyID = core.getInput('key-id')
+const privateKeyPath = core.getInput('private-key-path')
+const privateKeyPassphrase = core.getInput('private-key-passphrase')
 
 // mandatory check
 utils.mandatoryInputCheck(promoteJsonFileNameFull, 'promote-json-file-name-full')
 utils.mandatoryInputCheck(releaseVersion, 'release-version')
+utils.mandatoryInputCheck(keyID, 'key-id')
+utils.mandatoryInputCheck(privateKeyPath, 'private-key-path')
+utils.mandatoryInputCheck(privateKeyPassphrase, 'private-key-passphrase')
 
 // init
 var zoweReleaseJsonFile = process.env.ZOWE_RELEASE_JSON
@@ -13441,7 +13447,30 @@ Object.values(promoteJsonObject).forEach(properties => {
 
 
 function doSign(file) {
+    var signature = `${file}.asc`
+    
+    // imported key if not exist
+    if (!gpgKeyExists(keyID)) {
+        console.log(`Importing code signing key ${keyID} ...`)
+        var cmd = `gpg --batch --passphrase "${privateKeyPassphrase}" --import "${privateKeyPath}"`
+        utils.sh(cmd)
+        if (!gpgKeyExists(keyID)) {
+            throw new Error(`Code signing key ${keyID} is not imported correctly.`)
+        }
+    }
 
+    if (utils.fileExists(signature)) {
+        throw new Error(`Signature file ${signature} already exists.`)
+    }
+
+    // sign the file
+    console.log(`Signing ${file} with key ${keyID} ...`)
+    var cmd2 = `echo "${privateKeyPassphrase}" | gpg --batch --pinentry-mode loopback --passphrase-fd 0 --local-user ${keyID} --sign --armor --detach-sig ${file}`
+    utils.sh(cmd2)
+
+    if (!utils.fileExists(signature)) {
+        throw new Error(`Signature file ${signature} is not created.`)
+    }
 
 }
 
@@ -13449,6 +13478,11 @@ function doHash(file) {
 
 
 
+}
+
+function gpgKeyExists(key) {
+    var out = utils.sh('gpg --list-keys')
+    return out.contains(key)
 }
 
     //   // write code-signing-key-info.json
