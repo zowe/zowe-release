@@ -43,100 +43,104 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: '[Prep 1] Checkout'
-        uses: actions/checkout@v2
+      # - name: '[Prep 1] Checkout'
+      #   uses: actions/checkout@v2
   
-      - name: '[Prep 2] Setup jFrog CLI'
-        uses: jfrog/setup-jfrog-cli@v2
-        env:
-          JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_TOKEN }}
+      # - name: '[Prep 2] Setup jFrog CLI'
+      #   uses: jfrog/setup-jfrog-cli@v2
+      #   env:
+      #     JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_TOKEN }}
 
-      - name: '[Prep 3] Replace JFROG_CLI_BUILD_NAME'
-        run: echo JFROG_CLI_BUILD_NAME=${{ github.event.repository.name }}/${GITHUB_REF#refs/heads/} >> $GITHUB_ENV
+      # - name: '[Prep 3] Replace JFROG_CLI_BUILD_NAME'
+      #   run: echo JFROG_CLI_BUILD_NAME=${{ github.event.repository.name }}/${GITHUB_REF#refs/heads/} >> $GITHUB_ENV
 
-      - name: '[Prep 4] v1: convert release json template then print'
-        if: startsWith(github.event.inputs.zowe-artifact-dir, '1')
-        run: |
-          sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ github.event.inputs.zowe-artifact-dir }}#g" \
-            zowe-release-v1-template.json > zowe-release-v1.json
-          echo "Current zowe-release-v1.json is:"
-          cat zowe-release-v1.json
-          echo ZOWE_RELEASE_JSON=zowe-release-v1.json >> $GITHUB_ENV
+      # - name: '[Prep 4] v1: convert release json template then print'
+      #   if: startsWith(github.event.inputs.zowe-artifact-dir, '1')
+      #   run: |
+      #     sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ github.event.inputs.zowe-artifact-dir }}#g" \
+      #       zowe-release-v1-template.json > zowe-release-v1.json
+      #     echo "Current zowe-release-v1.json is:"
+      #     cat zowe-release-v1.json
+      #     echo ZOWE_RELEASE_JSON=zowe-release-v1.json >> $GITHUB_ENV
 
-      - name: '[Prep 4] v2: convert release json template then print'
-        if: startsWith(github.event.inputs.zowe-artifact-dir, '2')
-        run: |
-          sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ github.event.inputs.zowe-artifact-dir }}#g" \
-            zowe-release-v2-template.json > zowe-release-v2.json
-          echo "Current zowe-release-v2.json is:"
-          cat zowe-release-v2.json
-          echo ZOWE_RELEASE_JSON=zowe-release-v2.json >> $GITHUB_ENV
+      # - name: '[Prep 4] v2: convert release json template then print'
+      #   if: startsWith(github.event.inputs.zowe-artifact-dir, '2')
+      #   run: |
+      #     sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ github.event.inputs.zowe-artifact-dir }}#g" \
+      #       zowe-release-v2-template.json > zowe-release-v2.json
+      #     echo "Current zowe-release-v2.json is:"
+      #     cat zowe-release-v2.json
+      #     echo ZOWE_RELEASE_JSON=zowe-release-v2.json >> $GITHUB_ENV
 
-      - name: 'Validate zowe artifacts'
-        id: validate
-        uses: ./validate
-        with:
-          build-name: ${{ github.event.inputs.zowe-build-name }}
-          build-num: ${{ github.event.inputs.zowe-build-number }}
-          release-version: ${{ github.event.inputs.zowe-release-version }}
-        # env:
-        #   DEBUG: 'zowe-release:validate'
+      # - name: 'Validate zowe artifacts'
+      #   id: validate
+      #   uses: ./validate
+      #   with:
+      #     build-name: ${{ github.event.inputs.zowe-build-name }}
+      #     build-num: ${{ github.event.inputs.zowe-build-number }}
+      #     release-version: ${{ github.event.inputs.zowe-release-version }}
+      #   # env:
+      #   #   DEBUG: 'zowe-release:validate'
 
-      # Above step 'Validate' will generate a file (name is stored in its outputs.PROMOTE_JSON_FILE_NAME_FULL)
-      # file name is: promote-artifacts.json
-      # this can be used in many later step: promote, sign
+      # # Above step 'Validate' will generate a file (name is stored in its outputs.PROMOTE_JSON_FILE_NAME_FULL)
+      # # file name is: promote-artifacts.json
+      # # this can be used in many later step: promote, sign
 
-      - name: '[Print] promote-artifacts.json'
-        run: cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
+      # - name: '[Print] promote-artifacts.json'
+      #   run: cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
 
-      - name: 'Generate source build - formal release only!'
-        timeout-minutes: 10
-        if: env.IS_FORMAL_RELEASE == 'true'
-        run: |
-          export GITHUB_USERNAME=${{ secrets.ZOWE_ROBOT_USER }}
-          export GITHUB_PASSWORD=${{ secrets.ZOWE_ROBOT_TOKEN }}
-          ./.dependency/prepare_source_zip.sh
-          zip -r .release/zowe_sources-${{ github.event.inputs.zowe-release-version }}.zip .release/source_zip
+      # - name: 'Generate source build - formal release only!'
+      #   timeout-minutes: 10
+      #   if: env.IS_FORMAL_RELEASE == 'true'
+      #   run: |
+      #     export GITHUB_USERNAME=${{ secrets.ZOWE_ROBOT_USER }}
+      #     export GITHUB_PASSWORD=${{ secrets.ZOWE_ROBOT_TOKEN }}
+      #     ./.dependency/prepare_source_zip.sh
+      #     zip -r .release/zowe_sources-${{ github.event.inputs.zowe-release-version }}.zip .release/source_zip
 
-      - name: 'Promote (jfrog rt copy)'
-        timeout-minutes: 10
-        id: promote
-        uses: ./promote
-        with:
-          promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
-          release-version: ${{ github.event.inputs.zowe-release-version }}
-        # env:
-        #   DEBUG: 'zowe-release:promote'
+      # - name: 'Promote (jfrog rt copy)'
+      #   timeout-minutes: 10
+      #   id: promote
+      #   uses: ./promote
+      #   with:
+      #     promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
+      #     release-version: ${{ github.event.inputs.zowe-release-version }}
+      #   # env:
+      #   #   DEBUG: 'zowe-release:promote'
       
-      # promote step above will also create a release artifacts download spec file for next download step to consume
-      # file name is stored in its outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE
-      # file name will be: release-artifacts-download-spec.json
+      # # promote step above will also create a release artifacts download spec file for next download step to consume
+      # # file name is stored in its outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE
+      # # file name will be: release-artifacts-download-spec.json
 
-      - name: '[Print] release-artifacts-download-spec.json'
-        run: cat ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }}
+      # - name: '[Print] release-artifacts-download-spec.json'
+      #   run: cat ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }}
 
-      - name: 'Download released artifacts'
-        timeout-minutes: 20
-        run: |
-          GREEN='\033[0;32m'
-          RED='\033[0;31m'
-          NC='\033[0m'
-          mkdir -p .release
-          success_count=$(jfrog rt download --threads 10 --spec ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }} | jq -r ".totals.success")
-          if [[ -z "$success_count" ]] || [[ "$success_count" != ${{ env.CORRECT_NUM_OF_RELEASE_ARTIFACTS }} ]]; then
-            echo -e "${RED}\nmissing some release artifacts, I have only found $success_count. Should be ${{ env.CORRECT_NUM_OF_RELEASE_ARTIFACTS }}."
-            exit 1
-          else
-            echo
-            echo -e "${GREEN}I have downloaded $success_count artifacts, looks okay, may proceed.${NC}\n"
-          fi
+      # - name: 'Download released artifacts'
+      #   timeout-minutes: 20
+      #   run: |
+      #     GREEN='\033[0;32m'
+      #     RED='\033[0;31m'
+      #     NC='\033[0m'
+      #     mkdir -p .release
+      #     success_count=$(jfrog rt download --threads 10 --spec ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }} | jq -r ".totals.success")
+      #     if [[ -z "$success_count" ]] || [[ "$success_count" != ${{ env.CORRECT_NUM_OF_RELEASE_ARTIFACTS }} ]]; then
+      #       echo -e "${RED}\nmissing some release artifacts, I have only found $success_count. Should be ${{ env.CORRECT_NUM_OF_RELEASE_ARTIFACTS }}."
+      #       exit 1
+      #     else
+      #       echo
+      #       echo -e "${GREEN}I have downloaded $success_count artifacts, looks okay, may proceed.${NC}\n"
+      #     fi
       
-      - name: 'Sign - formal release or force sign only!'
-        if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
-        timeout-minutes: 20
-        uses: ./sign
-        with:
-          promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
-          release-version: ${{ github.event.inputs.zowe-release-version }}
+      # - name: 'Sign - formal release or force sign only!'
+      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
+      #   timeout-minutes: 20
+      #   uses: ./sign
+      #   with:
+      #     promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
+      #     release-version: ${{ github.event.inputs.zowe-release-version }}
 
-
+      - name: test
+        run: |
+          cat ${{ secrets.GPG_PRIVATE_KEY }} > private.key
+          gpg --batch --passphrase "${{ secrets.GPG_KEY_PASSPHRASE }}" --import private.key
+          gpg --list-keys

@@ -70,7 +70,10 @@ Object.values(promoteJsonObject).forEach(properties => {
 
 
 function doSign(file) {
+    var signature = `${file}.asc`
 
+    var cmd = `gpg --allow-secret-key-import --batch --passphrase "${JC_KEY_PASSPHRASE}" --import "${JC_PRIVATE_KEY}"`
+    
 
 }
 
