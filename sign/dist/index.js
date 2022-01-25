@@ -13417,7 +13417,7 @@ uploadArtifacts['files'].push({
     "target"  : targetPath
 })
 
-for (let [properties] of Object.values(promoteJsonObject)) {
+Object.values(promoteJsonObject).forEach(properties => {
     var file = `${localReleaseFolder}/${properties['target']}`
     if (utils.fileExists(file)) {    
         console.log(`>>> Signing ${properties['target']} ...`)
@@ -13437,8 +13437,7 @@ for (let [properties] of Object.values(promoteJsonObject)) {
     else {
         throw new Error(`I am looking for ${file} but it doesn't exist!`)
     }
-
-}
+});
 
 
 function doSign(file) {
