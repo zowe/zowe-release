@@ -141,6 +141,6 @@ jobs:
 
       - name: test
         run: |
-          cat ${{ secrets.GPG_PRIVATE_KEY }} > private.key
+          cat "${{ secrets.GPG_PRIVATE_KEY }}" > private.key
           gpg --batch --passphrase "${{ secrets.GPG_KEY_PASSPHRASE }}" --import private.key
           gpg --list-keys
