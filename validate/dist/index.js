@@ -6626,7 +6626,7 @@ else {
 }
 
 // init
-var zoweReleaseJsonFile = process.env.ZOWE_RELEASE_JSON_PATTERN
+var zoweReleaseJsonFile = process.env.ZOWE_RELEASE_JSON
 var zoweReleaseJsonObject = JSON.parse(fs.readFileSync(projectRootPath + '/' + zoweReleaseJsonFile))
 
 // this is the target Artifactory path will be released to

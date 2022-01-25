@@ -121,9 +121,10 @@ jobs:
             echo -e "${GREEN}I have downloaded $success_count artifacts, looks okay, may proceed.${NC}\n"
           fi
       
-      # - name: 'Sign - formal release only!'
-      #   if: env.IS_FORMAL_RELEASE == 'true'
-      #   timeout-minutes: 20
+      - name: 'Sign - formal release only!'
+        if: env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.zowe-release-version == true
+        timeout-minutes: 20
+        run: echo "HAHAHAHAHA"
       #   uses: ./sign
 
 
