@@ -6816,14 +6816,10 @@ if (cliPlugins['path']) {
 	logValidate(`>>[validate 13/13]>> Found Zowe CLI Plugins ${releaseArtifacts['cli-plugins']['source']['path']}.`)
 }
 
-// write to file and print content
-var promoteJsonFileNameFull = projectRootPath + '/tmp-release-artifacts.json'
+// write to file and print content, this file will be used in promote step in workflow
+var promoteJsonFileNameFull = process.env.RUNNER_TEMP + '/promote-artifacts.json'
 core.setOutput('PROMOTE_JSON_FILE_NAME_FULL', promoteJsonFileNameFull)
 fs.writeFileSync(promoteJsonFileNameFull, JSON.stringify(releaseArtifacts, null, 2))
-console.log('####################################')
-console.log('Printing tmp-release-artifacts.json')
-console.log('####################################')
-console.log(utils.sh(`cat ${projectRootPath}/tmp-release-artifacts.json`))
 
 // This function will return a json object
 // example:

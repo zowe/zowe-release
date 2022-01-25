@@ -13480,13 +13480,13 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
     
     downloadSpecJson['files'].push({
         "pattern" : targetFullPath,
-        "target"  : ".release/",
+        "target"  : `${process.env.LOCAL_RELEASE_FOLDER}/`,
         "flat"    : "true"
     })
 }
 
-// write downloadSpecJson into a file
-var releaseArtifactsDownloadSpecFileFull = projectRootPath + '/release-artifacts-download-spec.json'
+// write downloadSpecJson into a file, this file will be used in download step in workflow
+var releaseArtifactsDownloadSpecFileFull = process.env.RUNNER_TEMP + '/release-artifacts-download-spec.json'
 fs.writeFileSync(releaseArtifactsDownloadSpecFileFull, JSON.stringify(downloadSpecJson, null, 2))
 core.setOutput('RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE', releaseArtifactsDownloadSpecFileFull)
 })();

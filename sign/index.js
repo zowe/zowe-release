@@ -18,103 +18,92 @@ const context = actionsGithub.context
 
 // Defaults
 const projectRootPath = process.env.GITHUB_WORKSPACE
+const DEFAULT_GPG_CODE_SIGNING_KEY_PASSPHRASE = 'code-signing-key-passphrase-jack'
+const DEFAULT_GPG_CODE_SIGNING_PRIVATE_KEY_FILE = 'code-signing-key-private-jack'
+const localReleaseFolder = process.env.LOCAL_RELEASE_FOLDER
 
-// // Gets inputs
-// var promoteJsonFileNameFull = core.getInput('promote-json-file-name-full')
-// var releaseVersion = core.getInput('release-version')
+// Gets inputs
+var promoteJsonFileNameFull = core.getInput('promote-json-file-name-full')
+var releaseVersion = core.getInput('release-version')
 
-// //mandatory check
-// utils.mandatoryInputCheck(promoteJsonFileNameFull, 'promote-json-file-name-full')
-// utils.mandatoryInputCheck(releaseVersion, 'release-version')
+// mandatory check
+utils.mandatoryInputCheck(promoteJsonFileNameFull, 'promote-json-file-name-full')
+utils.mandatoryInputCheck(releaseVersion, 'release-version')
 
 // init
 var zoweReleaseJsonFile = process.env.ZOWE_RELEASE_JSON
 var zoweReleaseJsonObject = JSON.parse(fs.readFileSync(projectRootPath + '/' + zoweReleaseJsonFile))
-
-// this is the target Artifactory path will be released to
-var targetPath = `${zoweReleaseJsonObject['zowe']['to']}/org/zowe/${releaseVersion}`
-
 var promoteJsonObject = JSON.parse(fs.readFileSync(promoteJsonFileNameFull))
 
-// make a jfrog download file spec for later steps
-var downloadSpecJson = {"files":[]}
+// this is the target Artifactory path will be released to
+var targetPath = `${zoweReleaseJsonObject['zowe']['to']}/org/zowe/${releaseVersion}/`
 
-for (let [component, properties] of Object.entries(promoteJsonObject)) {
-    var buildTimestamp = properties['source']['props']['build.timestamp']
-    var buildName = properties['source']['props']['build.name']
-    var buildNumber = properties['source']['props']['build.number']
-    var sourceFullPath = `${properties['source']['path']}`
-    var targetFullPath = `${targetPath}/${properties['target']}`
+var uploadArtifacts = {"files":[]}
 
-    console.log(`Promoting artifact ${component}
-- from              :  ${sourceFullPath}
-- to                :  ${targetFullPath}
-- build name        :  ${buildName}
-- build number      :  ${buildNumber}
-- build timestamp   :  ${buildTimestamp}
-`)
+// add zowe sources into final upload file spec object
+uploadArtifacts['files'].push({
+    "pattern" : `${localReleaseFolder}/zowe_sources-*.zip`,
+    "target"  : targetPath
+})
 
-    // promote (copy) artifact
-    var cmd = `jfrog rt copy --flat "${sourceFullPath}" "${targetFullPath}"`
-    debug(cmd)
-    var promoteResult = utils.sh(cmd)
-    
-    // validate result
-    var promoteResultObject = JSON.parse(promoteResult)
-    console.log(`Artifact promoting result:
-- status  : ${promoteResultObject['status']}
-- success : ${promoteResultObject['totals']['success']}
-- failure : ${promoteResultObject['totals']['failure']}
-`)
-    if (promoteResultObject['status'] != 'success' ||
-        promoteResultObject['totals']['success'] != 1 || promoteResultObject['totals']['failure'] != 0) {
-        throw new Error("Artifact is not promoted successfully.")
+for (let [properties] of Object.values(promoteJsonObject)) {
+    var file = `${localReleaseFolder}/${properties['target']}`
+    if (utils.fileExists(file)) {    
+        console.log(`>>> Signing ${properties['target']} ...`)
+        doSign(file)
+        uploadArtifacts['files'].push({
+            "pattern" : `${file}.asc`,
+            "target"  : targetPath
+        })
+
+        console.log(`>>> Generating hash of ${properties['target']} ...`)
+        doHash(file)
+        uploadArtifacts['files'].push({
+            "pattern" : `${file}.sha512`,
+            "target"  : targetPath
+        })
+    }
+    else {
+        throw new Error(`I am looking for ${file} but it doesn't exist!`)
     }
 
-    // prepare artifact property
-    var props = []
-    if (buildName) {
-        props.push(`build.parentName=${buildName}`)
-    }
-    if (buildNumber) {
-        props.push(`build.parentNumber=${buildNumber}`)
-    }
-    if (buildTimestamp) {
-        props.push(`build.timestamp=${buildTimestamp}`)
-    }
-
-    // get current release pipeline run name and number
-    props.push(`build.name=${context.repo.repo}/${context.ref.replace('refs/heads/','')}`)
-    props.push(`build.number=${context.runNumber}`)
-    console.log(`Updating artifact properties:\n${props.join('\n')}`)
-
-    // update artifact property
-    var cmd1 = `jfrog rt set-props "${targetFullPath}" "${props.join(';')}"`
-    debug(cmd1)
-    var setPropsResult = utils.sh(cmd1)
-
-    // validate result
-    var setPropsResultObject = JSON.parse(setPropsResult)
-    console.log(`Artifact set props result:
-- status  : ${setPropsResultObject['status']}
-- success : ${setPropsResultObject['totals']['success']}
-- failure : ${setPropsResultObject['totals']['failure']}
-`)
-    if (setPropsResultObject['status'] != 'success' ||
-        setPropsResultObject['totals']['success'] != 1 || setPropsResultObject['totals']['failure'] != 0) {
-        throw new Error("Artifact property is not updated successfully.")
-    }
-
-    // make a jfrog download file spec for later steps
-    
-    downloadSpecJson['files'].push({
-        "pattern" : targetFullPath,
-        "target"  : ".release/",
-        "flat"    : "true"
-    })
 }
 
-// write downloadSpecJson into a file
-var releaseArtifactsDownloadSpecFileFull = projectRootPath + '/release-artifacts-download-spec.json'
-fs.writeFileSync(releaseArtifactsDownloadSpecFileFull, JSON.stringify(downloadSpecJson, null, 2))
-core.setOutput('RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE', releaseArtifactsDownloadSpecFileFull)
+
+function doSign(file) {
+
+
+}
+
+function doHash(file) {
+
+
+
+}
+
+    //   // write code-signing-key-info.json
+    //   def signingKeyId = signing.getSigningKey()
+    //   sh "curl -o .release/code-signing-key-info.json https://raw.githubusercontent.com/zowe/zowe-install-packaging/master/signing_keys/${signingKeyId}.json"
+    //   if (!fileExists('.release/code-signing-key-info.json')) {
+    //     error "Failed to download code signing key info json"
+    //   }
+    //   uploadArtifacts['files'].push([
+    //     "pattern" : '.release/code-signing-key-info.json',
+    //     "target"  : releaseFilePath + '/'
+    //   ])
+
+    //   // write version, no need to upload to Artifactory
+    //   writeFile file: '.release/version', text: params.ZOWE_RELEASE_VERSION
+
+    //   // debug show uploadArtifacts
+    //   writeJSON file: '.tmp-upload-artifacts.json', json: uploadArtifacts, pretty: 2
+    //   sh "set +x\n" +
+    //       "echo All signing results:\n" +
+    //       "echo ===============================================\n" +
+    //       "cat .tmp-upload-artifacts.json\n" +
+    //       "echo\n" +
+    //       "echo ===============================================\n"
+
+    //   echo ">>> Uploading signing results ..."
+    //   pipeline.artifactory.upload([spec: '.tmp-upload-artifacts.json'])
+    // },
