@@ -33,7 +33,6 @@ on:
 
 env:
   ZOWE_INSTALL_PACKAGING_REPO: zowe/zowe-install-packaging
-  ZOWE_RELEASE_JSON_PATTERN: zowe-release-v@.json
 
 jobs:
   promote-and-release:
@@ -48,15 +47,26 @@ jobs:
         env:
           JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_TOKEN }}
 
-      - name: replace JFROG_CLI_BUILD_NAME
+      - name: '[Prep 3] Replace JFROG_CLI_BUILD_NAME'
         run: echo JFROG_CLI_BUILD_NAME=${{ github.event.repository.name }}/${GITHUB_REF#refs/heads/} >> $GITHUB_ENV
 
-      - name: '[Prep 3] Convert release json template then print'
+      - name: '[Prep 4] v1: convert release json template then print'
+        if: startsWith(github.event.inputs.zowe-artifact-dir, '1')
         run: |
           sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ github.event.inputs.zowe-artifact-dir }}#g" \
             zowe-release-v1-template.json > zowe-release-v1.json
           echo "Current zowe-release-v1.json is:"
           cat zowe-release-v1.json
+          echo ZOWE_RELEASE_JSON=zowe-release-v1.json >> $GITHUB_ENV
+
+      - name: '[Prep 4] v2: convert release json template then print'
+        if: startsWith(github.event.inputs.zowe-artifact-dir, '2')
+        run: |
+          sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ github.event.inputs.zowe-artifact-dir }}#g" \
+            zowe-release-v2-template.json > zowe-release-v2.json
+          echo "Current zowe-release-v2.json is:"
+          cat zowe-release-v2.json
+          echo ZOWE_RELEASE_JSON=zowe-release-v2.json >> $GITHUB_ENV
 
       - name: 'Validate zowe artifacts'
         id: validate
@@ -111,9 +121,9 @@ jobs:
             echo -e "${GREEN}I have downloaded $success_count artifacts, looks okay, may proceed.${NC}\n"
           fi
       
-      - name: 'Sign - formal release only!'
-        if: env.IS_FORMAL_RELEASE == 'true'
-        timeout-minutes: 20
-        uses: ./sign
+      # - name: 'Sign - formal release only!'
+      #   if: env.IS_FORMAL_RELEASE == 'true'
+      #   timeout-minutes: 20
+      #   uses: ./sign
 
 

@@ -6625,13 +6625,8 @@ else {
     console.log(`>>>> Version ${releaseVersion} is NOT considered as a FORMAL RELEASE.`)
 }
 
-// init - will automatic decide if picking up v1 or v2 release json file
+// init
 var zoweReleaseJsonFile = process.env.ZOWE_RELEASE_JSON_PATTERN
-if (releaseVersion.startsWith('1')) {
-	zoweReleaseJsonFile = zoweReleaseJsonFile.replace(/@/g,'1')
-} else if (releaseVersion.startsWith('2')) {
-	zoweReleaseJsonFile = zoweReleaseJsonFile.replace(/@/g,'2')
-}
 var zoweReleaseJsonObject = JSON.parse(fs.readFileSync(projectRootPath + '/' + zoweReleaseJsonFile))
 
 // this is the target Artifactory path will be released to

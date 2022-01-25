@@ -13,19 +13,19 @@ const actionsGithub = require('@actions/github')
 const { utils } = require('zowe-common')
 const fs = require('fs')
 const Debug = require('debug')
-const debug = Debug('zowe-release:promote')
+const debug = Debug('zowe-release:sign')
 const context = actionsGithub.context
 
 // Defaults
 const projectRootPath = process.env.GITHUB_WORKSPACE
 
-// Gets inputs
-var promoteJsonFileNameFull = core.getInput('promote-json-file-name-full')
-var releaseVersion = core.getInput('release-version')
+// // Gets inputs
+// var promoteJsonFileNameFull = core.getInput('promote-json-file-name-full')
+// var releaseVersion = core.getInput('release-version')
 
-//mandatory check
-utils.mandatoryInputCheck(promoteJsonFileNameFull, 'promote-json-file-name-full')
-utils.mandatoryInputCheck(releaseVersion, 'release-version')
+// //mandatory check
+// utils.mandatoryInputCheck(promoteJsonFileNameFull, 'promote-json-file-name-full')
+// utils.mandatoryInputCheck(releaseVersion, 'release-version')
 
 // init
 var zoweReleaseJsonFile = process.env.ZOWE_RELEASE_JSON_PATTERN

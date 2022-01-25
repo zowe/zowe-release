@@ -13384,19 +13384,19 @@ const actionsGithub = __nccwpck_require__(9048)
 const { utils } = __nccwpck_require__(9089)
 const fs = __nccwpck_require__(5747)
 const Debug = __nccwpck_require__(8307)
-const debug = Debug('zowe-release:promote')
+const debug = Debug('zowe-release:sign')
 const context = actionsGithub.context
 
 // Defaults
 const projectRootPath = process.env.GITHUB_WORKSPACE
 
-// Gets inputs
-var promoteJsonFileNameFull = core.getInput('promote-json-file-name-full')
-var releaseVersion = core.getInput('release-version')
+// // Gets inputs
+// var promoteJsonFileNameFull = core.getInput('promote-json-file-name-full')
+// var releaseVersion = core.getInput('release-version')
 
-//mandatory check
-utils.mandatoryInputCheck(promoteJsonFileNameFull, 'promote-json-file-name-full')
-utils.mandatoryInputCheck(releaseVersion, 'release-version')
+// //mandatory check
+// utils.mandatoryInputCheck(promoteJsonFileNameFull, 'promote-json-file-name-full')
+// utils.mandatoryInputCheck(releaseVersion, 'release-version')
 
 // init
 var zoweReleaseJsonFile = process.env.ZOWE_RELEASE_JSON_PATTERN

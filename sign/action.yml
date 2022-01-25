@@ -1,0 +1,16 @@
+name: "Sign"
+description: "Sign zowe artifacts"
+inputs:
+  # promote-json-file-name-full:
+  #   description: the promote spec json file name
+  #   required: true
+  # release-version:
+  #   description: zowe release version
+  #   required: true
+
+# outputs:
+  
+
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
