@@ -122,7 +122,7 @@ jobs:
       #     fi
       
       - name: 'Sign - formal release only!'
-        if: env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == true
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == true }}
         timeout-minutes: 20
         run: echo "HAHAHAHAHA"
       #   uses: ./sign
