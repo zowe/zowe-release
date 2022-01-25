@@ -111,7 +111,7 @@ function doHash(file) {
 
 function gpgKeyExists(key) {
     var out = utils.sh('gpg --list-keys')
-    return out.contains(key)
+    return out.includes(key)
 }
 
     //   // write code-signing-key-info.json
