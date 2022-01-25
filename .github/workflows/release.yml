@@ -134,7 +134,7 @@ jobs:
       - name: 'Sign Prep'
         id: sign-prep
         run: |
-          private_keyfile_path="${{ env.RUNNER_TEMP }}/private.key"
+          private_keyfile_path="${{ runner.temp }}/private.key"
           echo "${{ secrets.GPG_PRIVATE_KEY }}" > $private_keyfile_path
           echo ::set-output name=PRIVATE_KEYFILE_PATH::$private_keyfile_path
 
