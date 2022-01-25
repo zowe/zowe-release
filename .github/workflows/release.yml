@@ -3,7 +3,6 @@ on:
   # workflow_call: TODO
   #   inputs:    
   #   secrets:
-  push:
       
   workflow_dispatch:
     inputs:
