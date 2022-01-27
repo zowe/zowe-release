@@ -6801,7 +6801,7 @@ var cliPackages = searchArtifact(
 if (cliPackages['path']) {
 	releaseArtifacts['cli'] = {}
 	releaseArtifacts['cli']['source'] = cliPackages
-	releaseArtifacts['cli']['target'] = zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-1*.zip'].replace(/\*/g,releaseVersion)
+	releaseArtifacts['cli']['target'] = zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-1*.zip'].replace(/1\*/g,releaseVersion)
 	logValidate(`>>[validate 12/13]>> Found Zowe CLI build ${releaseArtifacts['cli']['source']['path']}.`)
 }
 
@@ -6812,7 +6812,7 @@ var cliPlugins = searchArtifact(
 if (cliPlugins['path']) {
 	releaseArtifacts['cli-plugins'] = {}
 	releaseArtifacts['cli-plugins']['source'] = cliPlugins
-	releaseArtifacts['cli-plugins']['target'] = zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-1*.zip'].replace(/\*/g,releaseVersion)
+	releaseArtifacts['cli-plugins']['target'] = zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-1*.zip'].replace(/1\*/g,releaseVersion)
 	logValidate(`>>[validate 13/13]>> Found Zowe CLI Plugins ${releaseArtifacts['cli-plugins']['source']['path']}.`)
 }
 
