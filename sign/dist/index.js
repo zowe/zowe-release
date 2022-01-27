@@ -13466,6 +13466,7 @@ core.setOutput('SIGN_JSON_FILE_NAME_FULL', signJsonFileNameFull)
 fs.writeFileSync(signJsonFileNameFull, JSON.stringify(uploadArtifacts, null, 2))
 
 
+// input file here is a full file path
 function doSign(file) {
     var signature = `${file}.asc`
     
@@ -13494,21 +13495,22 @@ function doSign(file) {
 
 }
 
+// input file here is a full file path
 function doHash(file) {
     var algo = DEFAULT_HASH_ALGORITHM
     var filePath = utils.sh(`dirname "${file}"`)
     var fileName = utils.sh(`basename "${file}"`)
-    var hashFile = `${file}.${algo.toLowerCase()}`
-    if (utils.fileExists(hashFile, true)) {
-        console.warn(`[Warning] Hash file ${hashFile} already exists, will overwrite.`)
+    var hashFileName = `${fileName}.${algo.toLowerCase()}`
+    if (utils.fileExists(hashFileName, true)) {
+        console.warn(`[Warning] Hash file ${hashFileName} already exists, will overwrite.`)
     }
 
     // generate hash
     console.log(`Generating hash for ${fileName} ...`)
-    utils.sh(`cd ${filePath} && gpg --print-md "${algo}" "${fileName}" > "${hashFile}"`)
+    utils.sh(`cd ${filePath} && gpg --print-md "${algo}" "${fileName}" > "${hashFileName}"`)
 
-    if (!utils.fileExists(`${filePath}/${hashFile}`, true)) {
-        throw new Error(`Hash file ${hashFile} is not created.`)
+    if (!utils.fileExists(`${filePath}/${hashFileName}`, true)) {
+        throw new Error(`Hash file ${hashFileName} is not created.`)
     }
 }
 

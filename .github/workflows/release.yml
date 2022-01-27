@@ -132,7 +132,8 @@ jobs:
             echo -e "${GREEN}I have downloaded $success_count artifacts, looks okay, may proceed.${NC}\n"
           fi
       
-      - name: 'Sign Prep'
+      - name: 'Sign Prep - formal release or force sign only!'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
         id: sign-prep
         run: |
           private_keyfile_path="${{ runner.temp }}/private.key"
@@ -154,11 +155,12 @@ jobs:
       # sign step will produce a file sign-and-upload-artifacts.json which will be used next to upload,
       #  file name is stored in output SIGN_JSON_FILE_NAME_FULL
 
-      - name: '[Print] sign-and-upload-artifacts.json'
-        run: 
-          cat ${{ steps.sign.outputs.SIGN_JSON_FILE_NAME_FULL }}
+      - name: '[Print] sign-and-upload-artifacts.json - formal release or force sign only!'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
+        run: cat ${{ steps.sign.outputs.SIGN_JSON_FILE_NAME_FULL }}
 
-      - name: 'Upload sign and hash files'
+      - name: 'Upload sign and hash files - formal release or force sign only!'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
         timeout-minutes: 20
         run: |
           GREEN='\033[0;32m'
