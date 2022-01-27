@@ -36,6 +36,7 @@ on:
 env:
   ZOWE_INSTALL_PACKAGING_REPO: zowe/zowe-install-packaging
   CORRECT_NUM_OF_RELEASE_ARTIFACTS: 9
+  CORRECT_NUM_OF_SIGNED_ARTIFACTS: 20
   LOCAL_RELEASE_FOLDER: .release
 
 jobs:
@@ -140,6 +141,7 @@ jobs:
 
       - name: 'Sign - formal release or force sign only!'
         if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
+        id: sign
         timeout-minutes: 20
         uses: ./sign
         with:
@@ -148,3 +150,27 @@ jobs:
           key-id: ${{ secrets.GPG_KEY_ID }}
           private-key-path: ${{ steps.sign-prep.outputs.PRIVATE_KEYFILE_PATH }}
           private-key-passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
+
+      # sign step will produce a file sign-and-upload-artifacts.json which will be used next to upload,
+      #  file name is stored in output SIGN_JSON_FILE_NAME_FULL
+
+      - name: '[Print] sign-and-upload-artifacts.json'
+        run: 
+          cat ${{ steps.sign.outputs.SIGN_JSON_FILE_NAME_FULL }}
+
+      - name: 'Upload sign and hash files'
+        timeout-minutes: 20
+        run: |
+          GREEN='\033[0;32m'
+          RED='\033[0;31m'
+          NC='\033[0m'
+          success_count=$(jfrog rt upload --threads 10 --spec ${{ steps.sign.outputs.SIGN_JSON_FILE_NAME_FULL }} | jq -r ".totals.success")
+          if [[ -z "$success_count" ]] || [[ "$success_count" != ${{ env.CORRECT_NUM_OF_SIGNED_ARTIFACTS }} ]]; then
+            echo -e "${RED}\nmissing some signed upload artifacts, I have only uploaded $success_count. Should be ${{ env.CORRECT_NUM_OF_SIGNED_ARTIFACTS }}."
+            exit 1
+          else
+            echo
+            echo -e "${GREEN}I have uploaded $success_count artifacts, looks okay, may proceed.${NC}\n"
+          fi
+
+          

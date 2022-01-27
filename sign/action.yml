@@ -17,7 +17,9 @@ inputs:
     description: the passphrase of the private key
     required: true
 
-# outputs:
+outputs:
+  SIGN_JSON_FILE_NAME_FULL:
+    description: the name of the file containing the signed artifacts upload spec
   
 
 runs:

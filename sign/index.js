@@ -21,6 +21,7 @@ const projectRootPath = process.env.GITHUB_WORKSPACE
 const DEFAULT_GPG_CODE_SIGNING_KEY_PASSPHRASE = 'code-signing-key-passphrase-jack'
 const DEFAULT_GPG_CODE_SIGNING_PRIVATE_KEY_FILE = 'code-signing-key-private-jack'
 const localReleaseFolder = process.env.LOCAL_RELEASE_FOLDER
+const DEFAULT_HASH_ALGORITHM = 'SHA512'
 
 // Gets inputs
 var promoteJsonFileNameFull = core.getInput('promote-json-file-name-full')
@@ -52,9 +53,10 @@ uploadArtifacts['files'].push({
     "target"  : targetPath
 })
 
+// sign and hash each file then add into upload file spec object
 Object.values(promoteJsonObject).forEach(properties => {
     var file = `${localReleaseFolder}/${properties['target']}`
-    if (utils.fileExists(file)) {    
+    if (utils.fileExists(file, true)) {    
         console.log(`>>> Signing ${properties['target']} ...`)
         doSign(file)
         uploadArtifacts['files'].push({
@@ -74,6 +76,24 @@ Object.values(promoteJsonObject).forEach(properties => {
     }
 });
 
+// write code-signing-key-info.json
+utils.sh(`curl -o .release/code-signing-key-info.json https://raw.githubusercontent.com/zowe/zowe-install-packaging/master/signing_keys/${keyID}.json`)
+if (!utils.fileExists('.release/code-signing-key-info.json', true)) {
+    throw new Error(`Failed to download code signing key info json`)
+}
+uploadArtifacts['files'].push({
+    "pattern" : '.release/code-signing-key-info.json',
+    "target"  : targetPath
+})
+
+// write version, no need to upload to Artifactory
+fs.writeFileSync('.release/version', releaseVersion)
+
+// write uploadArtifacts to a file
+var signJsonFileNameFull = process.env.RUNNER_TEMP + '/sign-and-upload-artifacts.json'
+core.setOutput('SIGN_JSON_FILE_NAME_FULL', signJsonFileNameFull)
+fs.writeFileSync(signJsonFileNameFull, JSON.stringify(uploadArtifacts, null, 2))
+
 
 function doSign(file) {
     var signature = `${file}.asc`
@@ -88,7 +108,7 @@ function doSign(file) {
         }
     }
 
-    if (utils.fileExists(signature)) {
+    if (utils.fileExists(signature, true)) {
         throw new Error(`Signature file ${signature} already exists.`)
     }
 
@@ -97,46 +117,31 @@ function doSign(file) {
     var cmd2 = `echo "${privateKeyPassphrase}" | gpg --batch --pinentry-mode loopback --passphrase-fd 0 --local-user ${keyID} --sign --armor --detach-sig ${file}`
     utils.sh(cmd2)
 
-    if (!utils.fileExists(signature)) {
+    if (!utils.fileExists(signature, true)) {
         throw new Error(`Signature file ${signature} is not created.`)
     }
 
 }
 
 function doHash(file) {
+    var algo = DEFAULT_HASH_ALGORITHM
+    var filePath = utils.sh(`dirname "${file}"`)
+    var fileName = utils.sh(`basename "${file}"`)
+    var hashFile = `${file}.${algo.toLowerCase()}`
+    if (utils.fileExists(hashFile, true)) {
+        console.warn(`[Warning] Hash file ${hashFile} already exists, will overwrite.`)
+    }
 
+    // generate hash
+    console.log(`Generating hash for ${fileName} ...`)
+    utils.sh(`cd ${filePath} && gpg --print-md "${algo}" "${fileName}" > "${hashFile}"`)
 
-
+    if (!utils.fileExists(`${filePath}/${hashFile}`, true)) {
+        throw new Error(`Hash file ${hashFile} is not created.`)
+    }
 }
 
 function gpgKeyExists(key) {
     var out = utils.sh('gpg --list-keys')
     return out.includes(key)
 }
-
-    //   // write code-signing-key-info.json
-    //   def signingKeyId = signing.getSigningKey()
-    //   sh "curl -o .release/code-signing-key-info.json https://raw.githubusercontent.com/zowe/zowe-install-packaging/master/signing_keys/${signingKeyId}.json"
-    //   if (!fileExists('.release/code-signing-key-info.json')) {
-    //     error "Failed to download code signing key info json"
-    //   }
-    //   uploadArtifacts['files'].push([
-    //     "pattern" : '.release/code-signing-key-info.json',
-    //     "target"  : releaseFilePath + '/'
-    //   ])
-
-    //   // write version, no need to upload to Artifactory
-    //   writeFile file: '.release/version', text: params.ZOWE_RELEASE_VERSION
-
-    //   // debug show uploadArtifacts
-    //   writeJSON file: '.tmp-upload-artifacts.json', json: uploadArtifacts, pretty: 2
-    //   sh "set +x\n" +
-    //       "echo All signing results:\n" +
-    //       "echo ===============================================\n" +
-    //       "cat .tmp-upload-artifacts.json\n" +
-    //       "echo\n" +
-    //       "echo ===============================================\n"
-
-    //   echo ">>> Uploading signing results ..."
-    //   pipeline.artifactory.upload([spec: '.tmp-upload-artifacts.json'])
-    // },
