@@ -13419,10 +13419,13 @@ var targetPath = `${zoweReleaseJsonObject['zowe']['to']}/org/zowe/${releaseVersi
 var uploadArtifacts = {"files":[]}
 
 // add zowe sources into final upload file spec object
-uploadArtifacts['files'].push({
-    "pattern" : `${localReleaseFolder}/zowe_sources-*.zip`,
-    "target"  : targetPath
-})
+// only if it is a formal release, otherwise there will be no source generated
+if (process.env.IS_FORMAL_RELEASE) {
+    uploadArtifacts['files'].push({
+        "pattern" : `${localReleaseFolder}/zowe_sources-*.zip`,
+        "target"  : targetPath
+    })
+}
 
 // sign and hash each file then add into upload file spec object
 Object.values(promoteJsonObject).forEach(properties => {

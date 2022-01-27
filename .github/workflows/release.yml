@@ -166,9 +166,13 @@ jobs:
           GREEN='\033[0;32m'
           RED='\033[0;31m'
           NC='\033[0m'
+          expected_artifacts_count=${{ env.CORRECT_NUM_OF_SIGNED_ARTIFACTS }}
+          if [[ "${{ env.IS_FORMAL_RELEASE }}" == 'true' ]]; then
+            ((expected_artifacts_count--))
+          fi
           success_count=$(jfrog rt upload --threads 10 --spec ${{ steps.sign.outputs.SIGN_JSON_FILE_NAME_FULL }} | jq -r ".totals.success")
-          if [[ -z "$success_count" ]] || [[ "$success_count" != ${{ env.CORRECT_NUM_OF_SIGNED_ARTIFACTS }} ]]; then
-            echo -e "${RED}\nmissing some signed upload artifacts, I have only uploaded $success_count. Should be ${{ env.CORRECT_NUM_OF_SIGNED_ARTIFACTS }}."
+          if [[ -z "$success_count" ]] || [[ "$success_count" != "$expected_artifacts_count" ]]; then
+            echo -e "${RED}\nmissing some signed upload artifacts, I have only uploaded $success_count. Should be $expected_artifacts_count."
             exit 1
           else
             echo
