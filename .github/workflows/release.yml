@@ -180,47 +180,47 @@ jobs:
       #       echo -e "${GREEN}I have uploaded $success_count artifacts, looks okay, may proceed.${NC}\n"
       #     fi
 
-      - name: '[Tag 1 - formal release or force tag only!] Get zowe revision'
-        if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-tag == 'true' }}
-        id: tag-prep
-        run: |   
-          zowe_revision=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '.zowe.revision')
-          if [[ -z "$zowe_revision" ]]; then
-            RED='\033[0;31m'
-            echo -e "${RED}\n missing zowe revision - it is not parsed properly, please check step: [Validate] Print promote-artifacts.json to find out what went wrong"
-            exit 1
-          fi
-          echo ::set-output name=ZOWE_REVISION::$zowe_revision
+      # - name: '[Tag 1 - formal release or force tag only!] Get zowe revision'
+      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-tag == 'true' }}
+      #   id: tag-prep
+      #   run: |   
+      #     zowe_revision=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '.zowe.revision')
+      #     if [[ -z "$zowe_revision" ]]; then
+      #       RED='\033[0;31m'
+      #       echo -e "${RED}\n missing zowe revision - it is not parsed properly, please check step: [Validate] Print promote-artifacts.json to find out what went wrong"
+      #       exit 1
+      #     fi
+      #     echo ::set-output name=ZOWE_REVISION::$zowe_revision
 
-      - name: '[Tag 2 - formal release or force tag only!] Clone master branch to prepare for tagging'
-        if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-tag == 'true' }}
-        uses: actions/checkout@v2
-        with: 
-          repository: ${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
-          ref: ${{ steps.tag-prep.outputs.ZOWE_REVISION }}
-          token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
-          path: '.tag'
+      # - name: '[Tag 2 - formal release or force tag only!] Clone master branch to prepare for tagging'
+      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-tag == 'true' }}
+      #   uses: actions/checkout@v2
+      #   with: 
+      #     repository: ${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
+      #     ref: ${{ steps.tag-prep.outputs.ZOWE_REVISION }}
+      #     token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
+      #     path: '.tag'
 
-      - name: '[Tag 3 - formal release or force tag only!] Actual tag branch work'
-        if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-tag == 'true' }}
-        timeout-minutes: 10
-        run: |
-          GREEN='\033[0;32m'
-          RED='\033[0;31m'
-          NC='\033[0m'
+      # - name: '[Tag 3 - formal release or force tag only!] Actual tag branch work'
+      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-tag == 'true' }}
+      #   timeout-minutes: 10
+      #   run: |
+      #     GREEN='\033[0;32m'
+      #     RED='\033[0;31m'
+      #     NC='\033[0m'
 
-          zowe_release_version=${{ github.event.inputs.zowe-release-version }}
-          zowe_revision=${{ steps.tag-prep.outputs.ZOWE_REVISION }}
-          echo ">>> Tagging $zowe_revision as $zowe_release_version ..."
+      #     zowe_release_version=${{ github.event.inputs.zowe-release-version }}
+      #     zowe_revision=${{ steps.tag-prep.outputs.ZOWE_REVISION }}
+      #     echo ">>> Tagging $zowe_revision as $zowe_release_version ..."
           
-          cd .tag
-          commit=$(git show --format="%H" -s HEAD)
-          if [[ "$commit" != "$zowe_revision" ]]; then
-            echo -e "${RED}\n Failed to checkout $zowe_revision for tagging. The head of this branch is $commit "
-            exit 1
-          fi
-          git tag "v$zowe_release_version"
-          git push origin "v$zowe_release_version"
+      #     cd .tag
+      #     commit=$(git show --format="%H" -s HEAD)
+      #     if [[ "$commit" != "$zowe_revision" ]]; then
+      #       echo -e "${RED}\n Failed to checkout $zowe_revision for tagging. The head of this branch is $commit "
+      #       exit 1
+      #     fi
+      #     git tag "v$zowe_release_version"
+      #     git push origin "v$zowe_release_version"
 
 
           
