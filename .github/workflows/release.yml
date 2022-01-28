@@ -44,48 +44,48 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      # - name: '[Prep 1] Checkout'
-      #   uses: actions/checkout@v2
+      - name: '[Prep 1] Checkout'
+        uses: actions/checkout@v2
   
-      # - name: '[Prep 2] Setup jFrog CLI'
-      #   uses: jfrog/setup-jfrog-cli@v2
-      #   env:
-      #     JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_TOKEN }}
+      - name: '[Prep 2] Setup jFrog CLI'
+        uses: jfrog/setup-jfrog-cli@v2
+        env:
+          JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_TOKEN }}
 
-      # - name: '[Prep 3] Replace JFROG_CLI_BUILD_NAME'
-      #   run: echo JFROG_CLI_BUILD_NAME=${{ github.event.repository.name }}/${GITHUB_REF#refs/heads/} >> $GITHUB_ENV
+      - name: '[Prep 3] Replace JFROG_CLI_BUILD_NAME'
+        run: echo JFROG_CLI_BUILD_NAME=${{ github.event.repository.name }}/${GITHUB_REF#refs/heads/} >> $GITHUB_ENV
 
-      # - name: '[Prep 4 - v1 only!] v1: convert release json template then print'
-      #   if: startsWith(github.event.inputs.zowe-artifact-dir, '1')
-      #   run: |
-      #     sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ github.event.inputs.zowe-artifact-dir }}#g" \
-      #       zowe-release-v1-template.json > zowe-release-v1.json
-      #     echo "Current zowe-release-v1.json is:"
-      #     cat zowe-release-v1.json
-      #     echo ZOWE_RELEASE_JSON=zowe-release-v1.json >> $GITHUB_ENV
+      - name: '[Prep 4 - v1 only!] v1: convert release json template then print'
+        if: startsWith(github.event.inputs.zowe-artifact-dir, '1')
+        run: |
+          sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ github.event.inputs.zowe-artifact-dir }}#g" \
+            zowe-release-v1-template.json > zowe-release-v1.json
+          echo "Current zowe-release-v1.json is:"
+          cat zowe-release-v1.json
+          echo ZOWE_RELEASE_JSON=zowe-release-v1.json >> $GITHUB_ENV
 
-      # - name: '[Prep 4 - v2 only!] v2: convert release json template then print'
-      #   if: startsWith(github.event.inputs.zowe-artifact-dir, '2')
-      #   run: |
-      #     sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ github.event.inputs.zowe-artifact-dir }}#g" \
-      #       zowe-release-v2-template.json > zowe-release-v2.json
-      #     echo "Current zowe-release-v2.json is:"
-      #     cat zowe-release-v2.json
-      #     echo ZOWE_RELEASE_JSON=zowe-release-v2.json >> $GITHUB_ENV
+      - name: '[Prep 4 - v2 only!] v2: convert release json template then print'
+        if: startsWith(github.event.inputs.zowe-artifact-dir, '2')
+        run: |
+          sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ github.event.inputs.zowe-artifact-dir }}#g" \
+            zowe-release-v2-template.json > zowe-release-v2.json
+          echo "Current zowe-release-v2.json is:"
+          cat zowe-release-v2.json
+          echo ZOWE_RELEASE_JSON=zowe-release-v2.json >> $GITHUB_ENV
 
-      # - name: '[Validate 1] Validate zowe artifacts'
-      #   id: validate
-      #   uses: ./validate
-      #   with:
-      #     build-name: ${{ github.event.inputs.zowe-build-name }}
-      #     build-num: ${{ github.event.inputs.zowe-build-number }}
-      #     release-version: ${{ github.event.inputs.zowe-release-version }}
-      #   # env:
-      #   #   DEBUG: 'zowe-release:validate'
+      - name: '[Validate 1] Validate zowe artifacts'
+        id: validate
+        uses: ./validate
+        with:
+          build-name: ${{ github.event.inputs.zowe-build-name }}
+          build-num: ${{ github.event.inputs.zowe-build-number }}
+          release-version: ${{ github.event.inputs.zowe-release-version }}
+        # env:
+        #   DEBUG: 'zowe-release:validate'
 
-      # # Above step 'Validate' will generate a file (name is stored in its outputs.PROMOTE_JSON_FILE_NAME_FULL)
-      # # file name is: promote-artifacts.json
-      # # this can be used in many later step: promote, sign
+      # Above step 'Validate' will generate a file (name is stored in its outputs.PROMOTE_JSON_FILE_NAME_FULL)
+      # file name is: promote-artifacts.json
+      # this can be used in many later step: promote, sign
 
       # - name: '[Validate 2] Print promote-artifacts.json'
       #   run: cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
