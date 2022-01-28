@@ -214,7 +214,7 @@ jobs:
           echo ">>> Tagging $zowe_revision as $zowe_release_version ..."
           
           cd .tag
-          commit=$(git show --format="%h" -s HEAD)
+          commit=$(git show --format="%H" -s HEAD)
           if [[ "$commit" != "$zowe_revision" ]]; then
             echo -e "${RED}\n Failed to checkout $zowe_revision for tagging. The head of this branch is $commit "
             exit 1
