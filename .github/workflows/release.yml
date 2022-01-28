@@ -219,8 +219,8 @@ jobs:
             echo -e "${RED}\n Failed to checkout $zowe_revision for tagging. The head of this branch is $commit "
             exit 1
           fi
-          git tag "v$zowe_revision"
-          git push origin "v$zowe_revision"
+          git tag "v$zowe_release_version"
+          git push origin "v$zowe_release_version"
 
 
           
