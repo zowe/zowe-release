@@ -241,7 +241,7 @@ jobs:
           token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
           path: ${{ env.ORIGINAL_STAGING_DIR }}
 
-      - name: '[Promote PTF 2 - formal release only!] Clone staging branch again to make new branch from it'
+      - name: '[Promote PTF 2 - formal release only!] Clone staging branch to a diff path to make new branch from it'
         if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
         uses: actions/checkout@v2
         with:
@@ -277,7 +277,7 @@ jobs:
           cp smpe-promote.sh smpe-promote.sh.bak
           
           # copy the original smpe-promote.sh to the new checkout branch 
-          cp "$original_staging_dir/smpe/bld/smpe-promote.sh" .
+          cp "$original_staging_dir_path/smpe/bld/smpe-promote.sh" .
 
           # run the original smpe-promote shell script
           ./smpe-promote.sh -d -p "$GITHUB_WORKSPACE/${{ env.LOCAL_RELEASE_FOLDER }}/promote-ptf/smpe-promote.tar"
