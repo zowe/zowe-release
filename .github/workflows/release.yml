@@ -288,6 +288,7 @@ jobs:
           # don't commit in this PR yet
           
           # now, show change status
+          cd $GITHUB_WORKSPACE/${{ env.PROMOTE_PTF_DIR }}
           git status
           # // commit all changes
           # gitPromotePtf.commit("Promote PTF after release v${params.ZOWE_RELEASE_VERSION}")
