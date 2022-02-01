@@ -250,7 +250,7 @@ jobs:
           token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
           path: ${{ env.PROMOTE_PTF_DIR }}
 
-      - name: '[Promote PTF 3 - formal release only!] create a new branch (git checkout -b)'
+      - name: '[Promote PTF 3 - formal release only!] Create a new branch (git checkout -b)'
         if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
         run: |
           cd ${{ env.PROMOTE_PTF_DIR }}
@@ -300,9 +300,23 @@ jobs:
 
           # push before creating PR
           git push https://${{ secrets.ZOWE_ROBOT_USER }}:${{ secrets.ZOWE_ROBOT_TOKEN }}@github.com/${{ env.ZOWE_INSTALL_PACKAGING_REPO }} "users/robot/promote-ptf-from-${{ github.run_number }}"
-
-          # // create PR
-          # def pullRequestId = gitPromotePtf.createPullRequest('staging', 'Automatically Promote PTF after release by zowe robot')
-          # echo "Pull request #${pullRequestId} is created."
         
-          
+      - name: '[Promote PTF 6 - formal release only!] Create a new Pull Request'
+        uses: actions/github-script@v5
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
+        id: promote-ptf-6
+        with:
+          github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
+          script: |
+            var result = github.rest.pulls.create({
+              owner: 'zowe',
+              repo: 'zowe-install-packaging',
+              title: 'Automatically Promote PTF for v${{ github.event.inputs.zowe-release-version }} after release by zowe robot',
+              head: 'users/robot/promote-ptf-from-${{ github.run_number }}',
+              base: 'staging'
+            });
+            return result;
+
+      - name: '[Promote PTF 7 - formal release only!] Show newly created PR'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' && steps.promote-ptf-6.outputs.result != '' }}
+        run: echo ${{ steps.promote-ptf-6.outputs.result }}
