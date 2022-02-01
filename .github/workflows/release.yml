@@ -290,10 +290,16 @@ jobs:
           # now, show change status
           cd $GITHUB_WORKSPACE/${{ env.PROMOTE_PTF_DIR }}
           git status
-          # // commit all changes
-          # gitPromotePtf.commit("Promote PTF after release v${params.ZOWE_RELEASE_VERSION}")
-          # // push before creating PR
-          # gitPromotePtf.push()
+
+          git config user.name ${{ secrets.ZOWE_ROBOT_USER }}
+          git config user.email ${{ secrets.ZOWE_ROBOT_EMAIL }}
+
+          # commit all changes
+          git add .
+          git commit -s -m "Promote PTF after release v${{ github.event.inputs.zowe-release-version }}"
+
+          # push before creating PR
+          git push https://${{ secrets.ZOWE_ROBOT_USER }}:${{ secrets.ZOWE_ROBOT_TOKEN }}@github.com/${{ env.ZOWE_INSTALL_PACKAGING_REPO }} "users/robot/promote-ptf-from-${{ github.run_number }}"
 
           # // create PR
           # def pullRequestId = gitPromotePtf.createPullRequest('staging', 'Automatically Promote PTF after release by zowe robot')
