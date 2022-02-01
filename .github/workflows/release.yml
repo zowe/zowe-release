@@ -317,7 +317,7 @@ jobs:
               head: 'users/robot/promote-ptf-from-${{ github.run_number }}',
               base: 'staging'
             });
-            console.log('The pull request is at: ${out.data.html_url}');
+            console.log(`The pull request is at: ${out.data.html_url}`);
             return out.data.number;
           result-encoding: string
 
