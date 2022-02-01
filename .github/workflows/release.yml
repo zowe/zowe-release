@@ -310,8 +310,8 @@ jobs:
           github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
           script: |
             var result = github.rest.pulls.create({
-              owner: ${{ env.ZOWE_INSTALL_PACKAGING_OWNER }},
-              repo: ${{ env.ZOWE_INSTALL_PACKAGING_REPO }},
+              owner: '${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}',
+              repo: '${{ env.ZOWE_INSTALL_PACKAGING_REPO }}',
               title: 'Automatically Promote PTF for v${{ github.event.inputs.zowe-release-version }} after release by zowe robot',
               head: 'users/robot/promote-ptf-from-${{ github.run_number }}',
               base: 'staging'
@@ -330,8 +330,8 @@ jobs:
           github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
           script: |
             var result = github.rest.pulls.requestReviewers({
-              owner: ${{ env.ZOWE_INSTALL_PACKAGING_OWNER }},
-              repo: ${{ env.ZOWE_INSTALL_PACKAGING_REPO }},
+              owner: '${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}',
+              repo: '${{ env.ZOWE_INSTALL_PACKAGING_REPO }}',
               pull_number: ${{ steps.promote-ptf-6.outputs.result }},
               reviewers: [
                 'jackjia-ibm','FlappiTomic'
