@@ -35,25 +35,25 @@ Build ${buildNum} is promoted as Zowe ${releaseVersion}, you can download from b
 releaseArtifactJsonObject.files.forEach(function(obj) { 
     var pattern = obj.pattern
     if (pattern.includes('zowe') && pattern.endsWith('.pax')) {
-        message.push("Convenience Pax: %s%s", urlPrefix, pattern)
+        message.push(`Convenience Pax: ${urlPrefix}${pattern}`)
     }
     else if(pattern.includes('zowe-smpe') && pattern.endsWith('zip')) {
-        message.push("SMPE: %s%s",urlPrefix, pattern )
+        message.push(`SMPE: ${urlPrefix}${pattern}`)
     }
     else if(pattern.includes('server-bundle.amd64') && pattern.endsWith('tar')) {
-        message.push("Technical preview docker amd64 image: %s%s",urlPrefix, pattern)
+        message.push(`Technical preview docker amd64 image: ${urlPrefix}${pattern}`)
     }
     else if(pattern.includes('server-bundle.s390x') && pattern.endsWith('tar')) {
-        message.push("Technical preview docker s390x image: %s%s",urlPrefix, pattern)
+        message.push(`Technical preview docker s390x image: ${urlPrefix}${pattern}`)
     }
     else if(pattern.includes('zowe-containerization') && pattern.endsWith('zip')) {
-        message.push("Containerization: %s%s",urlPrefix, pattern)
+        message.push(`Containerization: ${urlPrefix}${pattern}`)
     }
     else if(pattern.includes('zowe-cli-package') && pattern.endsWith('zip')) {
-        message.push("CLI Core Package: %s%s",urlPrefix, pattern)
+        message.push(`CLI Core Package: ${urlPrefix}${pattern}`)
     }
     else if(pattern.includes('zowe-cli-plugins') && pattern.endsWith('zip')) {
-        message.push("CLI Plugins Package: %s%s",urlPrefix, pattern)
+        message.push(`CLI Plugins Package: ${urlPrefix}${pattern}`)
     }
 })
 message.push('*************************************************************************************************')
