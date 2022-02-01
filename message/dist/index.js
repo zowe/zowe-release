@@ -6613,7 +6613,6 @@ Build ${buildNum} is promoted as Zowe ${releaseVersion}, you can download from b
 
 releaseArtifactJsonObject.files.forEach(function(obj) { 
     var pattern = obj.pattern
-    console.log(pattern)
     if (pattern.includes('zowe') && pattern.endsWith('.pax')) {
         message.push("Convenience Pax: %s%s", urlPrefix, pattern)
     }
@@ -6634,9 +6633,6 @@ releaseArtifactJsonObject.files.forEach(function(obj) {
     }
     else if(pattern.includes('zowe-cli-plugins') && pattern.endsWith('zip')) {
         message.push("CLI Plugins Package: %s%s",urlPrefix, pattern)
-    }
-    else {
-        throw new Error('something went wrong')
     }
 })
 message.push('*************************************************************************************************')
