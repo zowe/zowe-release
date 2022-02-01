@@ -6614,25 +6614,25 @@ Build ${buildNum} is promoted as Zowe ${releaseVersion}, you can download from b
 releaseArtifactJsonObject.files.forEach(function(obj) { 
     var pattern = obj.pattern
     console.log(pattern)
-    if (pattern.contains('zowe') && pattern.endWith('.pax')) {
+    if (pattern.includes('zowe') && pattern.endWith('.pax')) {
         message.push("Convenience Pax: %s%s", urlPrefix, pattern)
     }
-    else if(pattern.contains('zowe-smpe') && pattern.endWith('zip')) {
+    else if(pattern.includes('zowe-smpe') && pattern.endWith('zip')) {
         message.push("SMPE: %s%s",urlPrefix, pattern )
     }
-    else if(pattern.contains('server-bundle.amd64') && pattern.endWith('tar')) {
+    else if(pattern.includes('server-bundle.amd64') && pattern.endWith('tar')) {
         message.push("Technical preview docker amd64 image: %s%s",urlPrefix, pattern)
     }
-    else if(pattern.contains('server-bundle.s390x') && pattern.endWith('tar')) {
+    else if(pattern.includes('server-bundle.s390x') && pattern.endWith('tar')) {
         message.push("Technical preview docker s390x image: %s%s",urlPrefix, pattern)
     }
-    else if(pattern.contains('zowe-containerization') && pattern.endWith('zip')) {
+    else if(pattern.includes('zowe-containerization') && pattern.endWith('zip')) {
         message.push("Containerization: %s%s",urlPrefix, pattern)
     }
-    else if(pattern.contains('zowe-cli-package') && pattern.endWith('zip')) {
+    else if(pattern.includes('zowe-cli-package') && pattern.endWith('zip')) {
         message.push("CLI Core Package: %s%s",urlPrefix, pattern)
     }
-    else if(pattern.contains('zowe-cli-plugins') && pattern.endWith('zip')) {
+    else if(pattern.includes('zowe-cli-plugins') && pattern.endWith('zip')) {
         message.push("CLI Plugins Package: %s%s",urlPrefix, pattern)
     }
     else {
