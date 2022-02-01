@@ -8,19 +8,19 @@ on:
     inputs:
       zowe-artifact-dir:
         description: 'ZOWE_ARTIFACT_DIR'
-        default: '1.27.0-SNAPSHOT'
+        default: '1.27.0-RC'
         required: true
       zowe-build-name:
         description: 'ZOWE_BUILD_NAME'
-        default: 'zowe-install-packaging/master'
+        default: 'zowe-install-packaging/rc'
         required: true
       zowe-build-number:
         description: 'ZOWE_BUILD_NUMBER'
         required: true
-        default: '234'
+        default: '214'
       zowe-release-version:
         description: 'ZOWE_RELEASE_VERSION'
-        default: '1.9999999.9999999'
+        default: '1.9999999.9999999-RC1'
         required: true
       force-sign:
         type: boolean
@@ -403,7 +403,7 @@ jobs:
           fi
 
       - name: Release result message (DevOps please click here to copy and announce)
-        if: ${{ env.IS_FORMAL_RELEASE == 'true' }}
+        #if: ${{ env.IS_FORMAL_RELEASE == 'true' }}
         timeout-minutes: 2
         uses: ./message
         with:
