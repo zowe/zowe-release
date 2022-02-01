@@ -309,19 +309,20 @@ jobs:
         with:
           github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
           script: |
-            const { data: out } = await github.rest.pulls.create({
+            var out = github.rest.pulls.create({
               owner: '${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}',
               repo: '${{ env.ZOWE_INSTALL_PACKAGING_REPO }}',
               title: 'Automatically Promote PTF for v${{ github.event.inputs.zowe-release-version }} after release by zowe robot',
               head: 'users/robot/promote-ptf-from-${{ github.run_number }}',
               base: 'staging'
             });
-            return out.data.number;
+            return out;
 
       - name: '[Promote PTF 7 - formal release only!] Show newly created PR'
         if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' && steps.promote-ptf-6.outputs.result != '' }}
         run: |
-          echo "The pull request is at: https://github.com/${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }}/pull/${{ steps.promote-ptf-6.outputs.result }}"
+          #echo "The pull request is at: https://github.com/${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }}/pull/${{ steps.promote-ptf-6.outputs.result }}"
+          echo "The pull request is at: ${{ steps.promote-ptf-6.outputs.result.data.html_url }}"
 
       - name: '[Promote PTF 8 - formal release only!] Add PR reviewers'
         if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' && steps.promote-ptf-6.outputs.result != '' }}
