@@ -1,0 +1,16 @@
+name: "Message"
+description: "Craft a message to show which artifacts are"
+inputs:
+  release-artifact-download-file:
+    description: release artifact download json file full path
+    required: true
+  release-version:
+    description: zowe release version
+    required: true
+  build-num:
+    description: zowe build number
+    required: true
+  
+runs:
+  using: 'node12'
+  main: 'dist/index.js'
