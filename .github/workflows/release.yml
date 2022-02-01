@@ -316,7 +316,7 @@ jobs:
               head: 'users/robot/promote-ptf-from-${{ github.run_number }}',
               base: 'staging'
             });
-            console.log(out.data)
+            console.log(out)
             return out.data.number;
           result-encoding: string
 
