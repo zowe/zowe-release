@@ -38,6 +38,9 @@ env:
   CORRECT_NUM_OF_RELEASE_ARTIFACTS: 9
   CORRECT_NUM_OF_SIGNED_ARTIFACTS: 20
   LOCAL_RELEASE_FOLDER: .release
+  TAG_DIR: .tag
+  ORIGINAL_STAGING_DIR: .original-zowe-install-packaging-staging
+  PROMOTE_PTF_DIR: .promote-ptf
 
 jobs:
   promote-and-release:
@@ -73,6 +76,14 @@ jobs:
           cat zowe-release-v2.json
           echo ZOWE_RELEASE_JSON=zowe-release-v2.json >> $GITHUB_ENV
 
+      - name: '[Prep 5] Create various folders for later steps to use'
+        run: |
+          # create folders under root project dir
+          mkdir ${{ env.LOCAL_RELEASE_FOLDER }}
+          mkdir ${{ env.TAG_DIR }}
+          mkdir ${{ env.ORIGINAL_STAGING_DIR }}
+          mkdir ${{ env.PROMOTE_PTF_DIR }}
+
       - name: '[Validate 1] Validate zowe artifacts'
         id: validate
         uses: ./validate
@@ -97,7 +108,7 @@ jobs:
       #     export GITHUB_USERNAME=${{ secrets.ZOWE_ROBOT_USER }}
       #     export GITHUB_PASSWORD=${{ secrets.ZOWE_ROBOT_TOKEN }}
       #     ./.dependency/prepare_source_zip.sh
-      #     zip -r .release/zowe_sources-${{ github.event.inputs.zowe-release-version }}.zip .release/source_zip
+      #     zip -r ${{ env.LOCAL_RELEASE_FOLDER }}/zowe_sources-${{ github.event.inputs.zowe-release-version }}.zip ${{ env.LOCAL_RELEASE_FOLDER }}/source_zip
 
       # - name: '[Promote 1] Promote (jfrog rt copy)'
       #   timeout-minutes: 10
@@ -123,7 +134,6 @@ jobs:
       #     GREEN='\033[0;32m'
       #     RED='\033[0;31m'
       #     NC='\033[0m'
-      #     mkdir -p .release
       #     success_count=$(jfrog rt download --threads 10 --spec ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }} | jq -r ".totals.success")
       #     if [[ -z "$success_count" ]] || [[ "$success_count" != ${{ env.CORRECT_NUM_OF_RELEASE_ARTIFACTS }} ]]; then
       #       echo -e "${RED}\nmissing some release artifacts, I have only found $success_count. Should be ${{ env.CORRECT_NUM_OF_RELEASE_ARTIFACTS }}."
@@ -199,7 +209,7 @@ jobs:
       #     repository: ${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
       #     ref: ${{ steps.tag-prep.outputs.ZOWE_REVISION }}
       #     token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
-      #     path: '.tag'
+      #     path: ${{ env.TAG_DIR }}
 
       # - name: '[Tag 3 - formal release or force tag only!] Actual tag branch work'
       #   if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-tag == 'true' }}
@@ -213,7 +223,7 @@ jobs:
       #     zowe_revision=${{ steps.tag-prep.outputs.ZOWE_REVISION }}
       #     echo ">>> Tagging $zowe_revision as $zowe_release_version ..."
           
-      #     cd .tag
+      #     cd ${{ env.TAG_DIR }}
       #     commit=$(git show --format="%H" -s HEAD)
       #     if [[ "$commit" != "$zowe_revision" ]]; then
       #       echo -e "${RED}\n Failed to checkout $zowe_revision for tagging. The head of this branch is $commit "
@@ -222,7 +232,70 @@ jobs:
       #     git tag "v$zowe_release_version"
       #     git push origin "v$zowe_release_version"
 
+      - name: '[Promote PTF 1 - formal release only!] Clone staging branch'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
+          ref: staging
+          token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
+          path: ${{ env.ORIGINAL_STAGING_DIR }}
 
+      - name: '[Promote PTF 2 - formal release only!] Clone staging branch again to make new branch from it'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
+          ref: staging
+          token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
+          path: ${{ env.PROMOTE_PTF_DIR }}
+
+      - name: '[Promote PTF 3 - formal release only!] create a new branch (git checkout -b)'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
+        run: |
+          cd ${{ env.PROMOTE_PTF_DIR }}
+          git checkout -b "users/robot/promote-ptf-from-${{ github.run_number }}"
+
+      - name: '[Promote PTF 4 - formal release only!] Download smpe-promote.tar'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
+        uses: zowe-actions/shared-actions/jfrog-download@main
+        with:
+          default-target-path: ${{ env.LOCAL_RELEASE_FOLDER }}/promote-ptf/smpe-promote.tar
+          source-path-or-pattern: ${{ env.SMPE_PTF_PROMOTE_TAR_PATH }}
+          extra-options: --flat=true
+          expected-count: 1
+
+      - name: '[Promote PTF 5 - formal release only!] Doing remaining work'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
+        run: |
+          # at the beginning, we are at root project dir of zowe-release
+          # store the path of original project root dir
+          original_staging_dir_path=$GITHUB_WORKSPACE/${{ env.ORIGINAL_STAGING_DIR }}
+
+          # clone smpe-promote.sh to smpe-promote.sh.bak
+          cd ${{ env.PROMOTE_PTF_DIR }}/smpe/bld
+          cp smpe-promote.sh smpe-promote.sh.bak
           
+          # copy the original smpe-promote.sh to the new checkout branch 
+          cp "$original_staging_dir/smpe/bld/smpe-promote.sh" .
 
+          # run the original smpe-promote shell script
+          ./smpe-promote.sh -d -p "$GITHUB_WORKSPACE/${{ env.LOCAL_RELEASE_FOLDER }}/promote-ptf/smpe-promote.tar"
+          
+          # rename(revert) the smpe-promote.sh.bak to discard git changes
+          mv smpe-promote.sh.bak smpe-promote.sh
+          
+          # don't commit in this PR yet
+          
+          # now, show change status
+          git status
+          # // commit all changes
+          # gitPromotePtf.commit("Promote PTF after release v${params.ZOWE_RELEASE_VERSION}")
+          # // push before creating PR
+          # gitPromotePtf.push()
+
+          # // create PR
+          # def pullRequestId = gitPromotePtf.createPullRequest('staging', 'Automatically Promote PTF after release by zowe robot')
+          # echo "Pull request #${pullRequestId} is created."
+        
           
