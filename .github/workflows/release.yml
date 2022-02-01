@@ -34,7 +34,8 @@ on:
         default: 'false'
 
 env:
-  ZOWE_INSTALL_PACKAGING_REPO: zowe/zowe-install-packaging
+  ZOWE_INSTALL_PACKAGING_OWNER: zowe
+  ZOWE_INSTALL_PACKAGING_REPO: zowe-install-packaging
   CORRECT_NUM_OF_RELEASE_ARTIFACTS: 9
   CORRECT_NUM_OF_SIGNED_ARTIFACTS: 20
   LOCAL_RELEASE_FOLDER: .release
@@ -206,7 +207,7 @@ jobs:
       #   if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-tag == 'true' }}
       #   uses: actions/checkout@v2
       #   with: 
-      #     repository: ${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
+      #     repository: ${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
       #     ref: ${{ steps.tag-prep.outputs.ZOWE_REVISION }}
       #     token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
       #     path: ${{ env.TAG_DIR }}
@@ -236,7 +237,7 @@ jobs:
         if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
         uses: actions/checkout@v2
         with:
-          repository: ${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
+          repository: ${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
           ref: staging
           token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
           path: ${{ env.ORIGINAL_STAGING_DIR }}
@@ -245,7 +246,7 @@ jobs:
         if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
         uses: actions/checkout@v2
         with:
-          repository: ${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
+          repository: ${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
           ref: staging
           token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
           path: ${{ env.PROMOTE_PTF_DIR }}
@@ -299,7 +300,7 @@ jobs:
           git commit -s -m "Promote PTF after release v${{ github.event.inputs.zowe-release-version }}"
 
           # push before creating PR
-          git push https://${{ secrets.ZOWE_ROBOT_USER }}:${{ secrets.ZOWE_ROBOT_TOKEN }}@github.com/${{ env.ZOWE_INSTALL_PACKAGING_REPO }} "users/robot/promote-ptf-from-${{ github.run_number }}"
+          git push https://${{ secrets.ZOWE_ROBOT_USER }}:${{ secrets.ZOWE_ROBOT_TOKEN }}@github.com/${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }} "users/robot/promote-ptf-from-${{ github.run_number }}"
         
       - name: '[Promote PTF 6 - formal release only!] Create a new Pull Request'
         uses: actions/github-script@v5
@@ -309,14 +310,30 @@ jobs:
           github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
           script: |
             var result = github.rest.pulls.create({
-              owner: 'zowe',
-              repo: 'zowe-install-packaging',
+              owner: ${{ env.ZOWE_INSTALL_PACKAGING_OWNER }},
+              repo: ${{ env.ZOWE_INSTALL_PACKAGING_REPO }},
               title: 'Automatically Promote PTF for v${{ github.event.inputs.zowe-release-version }} after release by zowe robot',
               head: 'users/robot/promote-ptf-from-${{ github.run_number }}',
               base: 'staging'
             });
-            return result;
+            return result.data.number;
 
       - name: '[Promote PTF 7 - formal release only!] Show newly created PR'
         if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' && steps.promote-ptf-6.outputs.result != '' }}
-        run: echo ${{ steps.promote-ptf-6.outputs.result }}
+        run: |
+          echo "The pull request is at: https://github.com/${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }}/pull/${{ steps.promote-ptf-6.outputs.result }}"
+
+      - name: '[Promote PTF 8 - formal release only!] Add PR reviewers'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' && steps.promote-ptf-6.outputs.result != '' }}
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
+          script: |
+            var result = github.rest.pulls.requestReviewers({
+              owner: ${{ env.ZOWE_INSTALL_PACKAGING_OWNER }},
+              repo: ${{ env.ZOWE_INSTALL_PACKAGING_REPO }},
+              pull_number: ${{ steps.promote-ptf-6.outputs.result }},
+              reviewers: [
+                'jackjia-ibm','FlappiTomic'
+              ]
+            });
