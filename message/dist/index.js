@@ -6635,7 +6635,8 @@ releaseArtifactJsonObject.files.forEach(function(obj) {
         message.push(`CLI Plugins Package: ${urlPrefix}${pattern}`)
     }
 })
-message.push('*************************************************************************************************')
+message.push(`
+*************************************************************************************************`)
 console.log(message.join('\n'))
 
 
