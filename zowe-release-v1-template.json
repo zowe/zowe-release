@@ -12,8 +12,7 @@
             "server-bundle.s390x-*.tar": "server-bundle.s390x-*.tar",
             "server-bundle.sources.s390x-*.tar": "server-bundle.sources.s390x-*.tar",
             "zowe-containerization-*.zip": "zowe-containerization-*.zip"
-        },
-        "tag-repositories": ["zowe-install-packaging"]
+        }
     },
 
     "zowe-cli" : {
@@ -23,8 +22,7 @@
         "sourceFiles": {
             "zowe-cli-package-1*.zip": "zowe-cli-package-1*.zip",
             "zowe-cli-plugins-1*.zip": "zowe-cli-plugins-1*.zip"
-        },
-        "tag-repositories": []
+        }
     },
 
     "zowe-cli-sdk" : {
@@ -35,7 +33,6 @@
             "zowe-nodejs-sdk-typedoc-*.zip",
             "zowe-python-sdk-*.zip",
             "zowe-nodejs-sdk-*.zip"
-        ],
-        "tag-repositories": []
+        ]
     }
 }
