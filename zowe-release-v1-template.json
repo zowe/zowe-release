@@ -29,10 +29,31 @@
         "from" : "libs-release-local",
         "to" : "libs-release-local",
         "sourcePath" : "org/zowe/sdk",
-        "sourceFiles": [
-            "zowe-nodejs-sdk-typedoc-*.zip",
-            "zowe-python-sdk-*.zip",
-            "zowe-nodejs-sdk-*.zip"
-        ]
+        "sourceFiles": {
+            "zowe-python-sdk-1*.zip": "zowe-python-sdk-1*.zip",
+            "zowe-nodejs-sdk-1*.zip": "zowe-nodejs-sdk-1*.zip",
+            "zowe-nodejs-sdk-typedoc-1*.zip": "zowe-nodejs-sdk-typedoc-1*.zip"
+        }
+    },
+
+    "zowe-cli-next" : {
+        "from" : "libs-release-local",
+        "sourcePath" : "org/zowe/cli",
+        "sourceFiles": {
+            "zowe-cli-package-next-*.zip": "zowe-cli-package-next-*.zip",
+            "zowe-cli-plugins-next-*.zip": "zowe-cli-plugins-next-*.zip"
+        },
+        "to" : "libs-release-local",
+        "targetPath": "org/zowe/next"
+    },
+
+    "zowe-cli-sdk-next" : {
+        "from" : "libs-release-local",
+        "sourcePath" : "org/zowe/sdk",
+        "sourceFiles": {
+            "zowe-nodejs-sdk-next-*.zip": "zowe-nodejs-sdk-next-*.zip"
+        },
+        "to" : "libs-release-local",
+        "targetPath": "org/zowe/next"
     }
 }
