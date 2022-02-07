@@ -403,8 +403,8 @@ jobs:
           fi
 
       #(only execute this before v2 launches)
-      - name: '[EXTRA] extra work involving jfrog copy cli v2 artifacts in v1 release pipeline'
-        if: startsWith(github.event.inputs.zowe-artifact-dir, '1')
+      - name: '[EXTRA] extra work involving jfrog copy cli v2 artifacts in v1 release pipeline - formal release only!'
+        if: ${{ startsWith(github.event.inputs.zowe-artifact-dir, '1') && env.IS_FORMAL_RELEASE == 'true' }}
         run: |
           function jfrog_search_latest {
             RED='\033[0;31m'
@@ -443,7 +443,6 @@ jobs:
           jfrog rt copy --flat "$cli_sdk_next_src" "$cli_sdk_next_tgt"
 
       - name: Release result message (DevOps please click here to copy and announce)
-        #if: ${{ env.IS_FORMAL_RELEASE == 'true' }}
         timeout-minutes: 2
         uses: ./message
         with:
