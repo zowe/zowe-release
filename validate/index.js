@@ -112,7 +112,8 @@ try {
 	if (smpeZipSource['path']) {
 		releaseArtifacts['smpe-zip'] = {}
 		releaseArtifacts['smpe-zip']['source'] = smpeZipSource
-		releaseArtifacts['smpe-zip']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-smpe-*.zip'].replace(/\*/g,releaseVersion)
+        // special note that target for smpe shall be 'smpe-package'
+		releaseArtifacts['smpe-zip']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-smpe-*.zip'].replace(/\*/g,'package-'+releaseVersion)
 		logValidate(`>>[validate 5/16]>> Found SMP/e build ${smpeZipSource['path']}.`)
 	}
 	try {
