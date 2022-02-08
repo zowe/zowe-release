@@ -359,7 +359,6 @@ jobs:
           manifest_source_amends=
           
           # load images first
-          
           docker load --input .release/server-bundle.amd64-*.tar
           manifest_amends+=" --amend ompzowe/server-bundle:amd64"
           docker load --input .release/server-bundle.s390x-*.tar
