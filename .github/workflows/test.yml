@@ -1,0 +1,12 @@
+name: Zowe Release
+on:
+  push
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'aaa'
+        run: |
+          publish_commands="docker login -u \"${{ secrets.DOCKERHUB_USER }}\" -p \"${{ secrets.DOCKERHUB_PASSWORD }}\"\n"
+          eval "$publish_commands"
