@@ -396,45 +396,46 @@ jobs:
       #       docker manifest push ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}-sources
       #     fi
 
-      #(only execute this before v2 launches)
-      - name: '[EXTRA] extra work involving jfrog copy cli v2 artifacts in v1 release pipeline - formal release only!'
-        if: ${{ startsWith(github.event.inputs.zowe-artifact-dir, '1') && env.IS_FORMAL_RELEASE == 'true' }}
-        run: |
-          function jfrog_search_latest {
-            RED='\033[0;31m'
-            search_pattern=$1
-            if [[ -z "$search_pattern" ]]; then
-              echo -e "${RED}In jfrog search latest function, search pattern is not provided" > /dev/stderr
-              exit 1
-            fi
-            out=$(jfrog rt search --sort-by=created --sort-order=desc --limit=1 "$search_pattern" | jq -r '.[].path')
-            if [[ -z "$out" ]]; then
-              echo -e "${RED}Cannot find latest artifact in pattern: $search_pattern" > /dev/stderr
-              exit 1
-            fi
-            echo $out
-          }
+      # only execute this before v2 launches
+      # on-demand, sometimes for hotfix you don't have to do it
+      # - name: '[EXTRA] extra work involving jfrog copy cli v2 artifacts in v1 release pipeline - formal release only!'
+      #   if: ${{ startsWith(github.event.inputs.zowe-artifact-dir, '1') && env.IS_FORMAL_RELEASE == 'true' }}
+      #   run: |
+      #     function jfrog_search_latest {
+      #       RED='\033[0;31m'
+      #       search_pattern=$1
+      #       if [[ -z "$search_pattern" ]]; then
+      #         echo -e "${RED}In jfrog search latest function, search pattern is not provided" > /dev/stderr
+      #         exit 1
+      #       fi
+      #       out=$(jfrog rt search --sort-by=created --sort-order=desc --limit=1 "$search_pattern" | jq -r '.[].path')
+      #       if [[ -z "$out" ]]; then
+      #         echo -e "${RED}Cannot find latest artifact in pattern: $search_pattern" > /dev/stderr
+      #         exit 1
+      #       fi
+      #       echo $out
+      #     }
 
-          # copy cli package vnext
-          cli_package_next_search=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".from')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".sourcePath')"/*/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".sourceFiles."zowe-cli-package-next-*.zip"')
-          cli_package_next_src=$(jfrog_search_latest $cli_package_next_search)
-          cli_package_next_tgt_filename=$(echo ${cli_package_next_src##*/} | sed "s#-RC1##g")  
-          cli_package_next_tgt=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".to')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".targetPath')"/"$cli_package_next_tgt_filename
-          jfrog rt copy --flat "$cli_package_next_src" "$cli_package_next_tgt"
+      #     # copy cli package vnext
+      #     cli_package_next_search=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".from')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".sourcePath')"/*/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".sourceFiles."zowe-cli-package-next-*.zip"')
+      #     cli_package_next_src=$(jfrog_search_latest $cli_package_next_search)
+      #     cli_package_next_tgt_filename=$(echo ${cli_package_next_src##*/} | sed "s#-RC1##g")  
+      #     cli_package_next_tgt=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".to')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".targetPath')"/"$cli_package_next_tgt_filename
+      #     jfrog rt copy --flat "$cli_package_next_src" "$cli_package_next_tgt"
 
-          # copy cli plugin vnext
-          cli_plugins_next_search=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".from')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".sourcePath')"/*/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".sourceFiles."zowe-cli-plugins-next-*.zip"')
-          cli_plugins_next_src=$(jfrog_search_latest $cli_plugins_next_search)
-          cli_plugins_next_tgt_filename=$(echo ${cli_plugins_next_src##*/} | sed "s#-RC1##g")  
-          cli_plugins_next_tgt=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".to')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".targetPath')"/"$cli_plugins_next_tgt_filename
-          jfrog rt copy --flat "$cli_plugins_next_src" "$cli_plugins_next_tgt"
+      #     # copy cli plugin vnext
+      #     cli_plugins_next_search=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".from')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".sourcePath')"/*/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".sourceFiles."zowe-cli-plugins-next-*.zip"')
+      #     cli_plugins_next_src=$(jfrog_search_latest $cli_plugins_next_search)
+      #     cli_plugins_next_tgt_filename=$(echo ${cli_plugins_next_src##*/} | sed "s#-RC1##g")  
+      #     cli_plugins_next_tgt=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".to')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".targetPath')"/"$cli_plugins_next_tgt_filename
+      #     jfrog rt copy --flat "$cli_plugins_next_src" "$cli_plugins_next_tgt"
 
-          # copy cli sdk vnext
-          cli_sdk_next_search=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".from')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".sourcePath')"/*/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".sourceFiles."zowe-nodejs-sdk-next-*.zip"')
-          cli_sdk_next_src=$(jfrog_search_latest $cli_sdk_next_search)
-          cli_sdk_next_tgt_filename=$(echo ${cli_sdk_next_src##*/} | sed "s#-RC1##g")  
-          cli_sdk_next_tgt=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".to')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".targetPath')"/"$cli_sdk_next_tgt_filename
-          jfrog rt copy --flat "$cli_sdk_next_src" "$cli_sdk_next_tgt"
+      #     # copy cli sdk vnext
+      #     cli_sdk_next_search=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".from')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".sourcePath')"/*/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".sourceFiles."zowe-nodejs-sdk-next-*.zip"')
+      #     cli_sdk_next_src=$(jfrog_search_latest $cli_sdk_next_search)
+      #     cli_sdk_next_tgt_filename=$(echo ${cli_sdk_next_src##*/} | sed "s#-RC1##g")  
+      #     cli_sdk_next_tgt=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".to')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".targetPath')"/"$cli_sdk_next_tgt_filename
+      #     jfrog rt copy --flat "$cli_sdk_next_src" "$cli_sdk_next_tgt"
 
       - name: Release result message (DevOps please click here to copy and announce)
         timeout-minutes: 2
