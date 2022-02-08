@@ -340,10 +340,10 @@ jobs:
         if: ${{ env.IS_FORMAL_RELEASE == 'true' }}
         timeout-minutes: 120
         run: |
-          docker_s390x=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '.docker-s390x')
-          docker_amd64=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '.docker-amd64')
-          docker_amd64_sources=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '.docker-amd64-sources')
-          docker_s390x_sources=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '.docker-s390x-sources')
+          docker_s390x=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-s390x"')
+          docker_amd64=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-amd64"')
+          docker_amd64_sources=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-amd64-sources"')
+          docker_s390x_sources=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-s390x-sources"')
           
           if [[ -z "$docker_s390x" ]] && [[ -z "$docker_amd64" ]]; then
             RED='\033[0;31m'
