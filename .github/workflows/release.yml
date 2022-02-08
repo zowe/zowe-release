@@ -351,41 +351,35 @@ jobs:
             exit 1
           fi
 
-          publish_commands="docker login -u \"${{ secrets.DOCKERHUB_USER }}\" -p \"${{ secrets.DOCKERHUB_PASSWORD }}\"\n"
+          # login first
+          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USER }}"
+
+          # initialize everything
           manifest_amends=
           manifest_source_amends=
           
-          # load images
-          if [[ -n "$docker_amd64" ]]; then
-            # the image in tar should always be ompzowe/server-bundle:amd64
-            docker load --input .release/server-bundle.amd64-*.tar
-            publish_commands+="docker push ompzowe/server-bundle:amd64;"
-            manifest_amends+=" --amend ompzowe/server-bundle:amd64"
-          fi
-
+          # load images first
+          
+          docker load --input .release/server-bundle.amd64-*.tar
+          manifest_amends+=" --amend ompzowe/server-bundle:amd64"
+          docker load --input .release/server-bundle.s390x-*.tar
+          manifest_amends+=" --amend ompzowe/server-bundle:s390x"
+          
           if [[ -n "$docker_amd64_sources" ]]; then
             # the image in tar should always be ompzowe/server-bundle:amd64-sources
             docker load --input .release/server-bundle.sources.amd64-*.tar
-            publish_commands+="docker push ompzowe/server-bundle:amd64-sources;"
             manifest_source_amends+=" --amend ompzowe/server-bundle:amd64-sources"
-          fi
-
-          if [[ -n "$docker_s390x" ]]; then
-            # the image in tar should always be ompzowe/server-bundle:s390x
-            docker load --input .release/server-bundle.s390x-*.tar
-            publish_commands+="docker push ompzowe/server-bundle:s390x;"
-            manifest_amends+=" --amend ompzowe/server-bundle:s390x"
           fi
           
           if [[ -n "$docker_s390x_sources" ]]; then
             # the image in tar should always be ompzowe/server-bundle:amd64-sources
             docker load --input .release/server-bundle.sources.s390x-*.tar
-            publish_commands+="docker push ompzowe/server-bundle:s390x-sources;"
             manifest_source_amends+=" --amend ompzowe/server-bundle:s390x-sources"
           fi
         
           # publish images
-          eval "$publish_commands"
+          docker push ompzowe/server-bundle:amd64
+          docker push ompzowe/server-bundle:s390x
           export DOCKER_CLI_EXPERIMENTAL=enabled
           docker manifest create ompzowe/server-bundle:latest$manifest_amends
           docker manifest push ompzowe/server-bundle:latest
@@ -394,7 +388,8 @@ jobs:
         
           # publish source images
           if [[ -n "$manifest_source_amends" ]]; then
-            eval "$publish_commands"
+            docker push ompzowe/server-bundle:amd64-sources
+            docker push ompzowe/server-bundle:s390x-sources
             export DOCKER_CLI_EXPERIMENTAL=enabled
             docker manifest create ompzowe/server-bundle:latest-sources$manifest_source_amends
             docker manifest push ompzowe/server-bundle:latest-sources
