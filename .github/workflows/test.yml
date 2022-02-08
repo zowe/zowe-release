@@ -8,6 +8,6 @@ jobs:
     steps:
       - name: 'aaa'
         run: |
-          publish_commands="docker login -u ${{ secrets.DOCKERHUB_USER }} -p ${{ secrets.DOCKERHUB_PASSWORD }};"
+          publish_commands="echo \"${{ secrets.DOCKERHUB_PASSWORD }}\" | docker login -u \"${{ secrets.DOCKERHUB_USER }}\" --password-stdin;"
           publish_commands+="pwd"
           eval "$publish_commands"
