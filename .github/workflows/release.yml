@@ -335,65 +335,66 @@ jobs:
               ]
             });
 
-      - name: Publish docker images - formal release only!
-        if: ${{ env.IS_FORMAL_RELEASE == 'true' }}
-        timeout-minutes: 120
-        run: |
-          docker_s390x=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-s390x"')
-          docker_amd64=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-amd64"')
-          docker_amd64_sources=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-amd64-sources"')
-          docker_s390x_sources=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-s390x-sources"')
+      # only execute this in v1 release pipeline & formal release
+      # - name: Publish docker images - formal release only!
+      #   if: ${{ startsWith(github.event.inputs.zowe-artifact-dir, '1') && env.IS_FORMAL_RELEASE == 'true' }}
+      #   timeout-minutes: 120
+      #   run: |
+      #     docker_s390x=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-s390x"')
+      #     docker_amd64=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-amd64"')
+      #     docker_amd64_sources=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-amd64-sources"')
+      #     docker_s390x_sources=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-s390x-sources"')
           
-          if [[ -z "$docker_s390x" ]] && [[ -z "$docker_amd64" ]]; then
-            RED='\033[0;31m'
-            echo -e "${RED}\n missing docker amd64 or docker s390x - they are not parsed properly, please check step: [Validate] Print promote-artifacts.json to find out what went wrong"
-            exit 1
-          fi
+      #     if [[ -z "$docker_s390x" ]] && [[ -z "$docker_amd64" ]]; then
+      #       RED='\033[0;31m'
+      #       echo -e "${RED}\n missing docker amd64 or docker s390x - they are not parsed properly, please check step: [Validate] Print promote-artifacts.json to find out what went wrong"
+      #       exit 1
+      #     fi
 
-          # login first
-          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USER }}" --password-stdin
+      #     # login first
+      #     echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USER }}" --password-stdin
 
-          # initialize everything
-          manifest_amends=
-          manifest_source_amends=
+      #     # initialize everything
+      #     manifest_amends=
+      #     manifest_source_amends=
           
-          # load images first
-          docker load --input .release/server-bundle.amd64-*.tar
-          manifest_amends+=" --amend ompzowe/server-bundle:amd64"
-          docker load --input .release/server-bundle.s390x-*.tar
-          manifest_amends+=" --amend ompzowe/server-bundle:s390x"
+      #     # load images first
+      #     docker load --input .release/server-bundle.amd64-*.tar
+      #     manifest_amends+=" --amend ompzowe/server-bundle:amd64"
+      #     docker load --input .release/server-bundle.s390x-*.tar
+      #     manifest_amends+=" --amend ompzowe/server-bundle:s390x"
           
-          if [[ -n "$docker_amd64_sources" ]]; then
-            # the image in tar should always be ompzowe/server-bundle:amd64-sources
-            docker load --input .release/server-bundle.sources.amd64-*.tar
-            manifest_source_amends+=" --amend ompzowe/server-bundle:amd64-sources"
-          fi
+      #     if [[ -n "$docker_amd64_sources" ]]; then
+      #       # the image in tar should always be ompzowe/server-bundle:amd64-sources
+      #       docker load --input .release/server-bundle.sources.amd64-*.tar
+      #       manifest_source_amends+=" --amend ompzowe/server-bundle:amd64-sources"
+      #     fi
           
-          if [[ -n "$docker_s390x_sources" ]]; then
-            # the image in tar should always be ompzowe/server-bundle:amd64-sources
-            docker load --input .release/server-bundle.sources.s390x-*.tar
-            manifest_source_amends+=" --amend ompzowe/server-bundle:s390x-sources"
-          fi
+      #     if [[ -n "$docker_s390x_sources" ]]; then
+      #       # the image in tar should always be ompzowe/server-bundle:amd64-sources
+      #       docker load --input .release/server-bundle.sources.s390x-*.tar
+      #       manifest_source_amends+=" --amend ompzowe/server-bundle:s390x-sources"
+      #     fi
         
-          # publish images
-          docker push ompzowe/server-bundle:amd64
-          docker push ompzowe/server-bundle:s390x
-          export DOCKER_CLI_EXPERIMENTAL=enabled
-          docker manifest create ompzowe/server-bundle:latest$manifest_amends
-          docker manifest push ompzowe/server-bundle:latest
-          docker manifest create ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}$manifest_amends
-          docker manifest push ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}
+      #     # publish images
+      #     docker push ompzowe/server-bundle:amd64
+      #     docker push ompzowe/server-bundle:s390x
+      #     export DOCKER_CLI_EXPERIMENTAL=enabled
+      #     docker manifest create ompzowe/server-bundle:latest$manifest_amends
+      #     docker manifest push ompzowe/server-bundle:latest
+      #     docker manifest create ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}$manifest_amends
+      #     docker manifest push ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}
         
-          # publish source images
-          if [[ -n "$manifest_source_amends" ]]; then
-            docker push ompzowe/server-bundle:amd64-sources
-            docker push ompzowe/server-bundle:s390x-sources
-            export DOCKER_CLI_EXPERIMENTAL=enabled
-            docker manifest create ompzowe/server-bundle:latest-sources$manifest_source_amends
-            docker manifest push ompzowe/server-bundle:latest-sources
-            docker manifest create ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}-sources$manifest_source_amends
-            docker manifest push ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}-sources
-          fi
+      #     # publish source images
+      #     if [[ -n "$manifest_source_amends" ]]; then
+      #       docker push ompzowe/server-bundle:amd64-sources
+      #       docker push ompzowe/server-bundle:s390x-sources
+      #       export DOCKER_CLI_EXPERIMENTAL=enabled
+      #       docker manifest create ompzowe/server-bundle:latest-sources$manifest_source_amends
+      #       docker manifest push ompzowe/server-bundle:latest-sources
+      #       docker manifest create ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}-sources$manifest_source_amends
+      #       docker manifest push ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}-sources
+      #     fi
 
       #(only execute this before v2 launches)
       - name: '[EXTRA] extra work involving jfrog copy cli v2 artifacts in v1 release pipeline - formal release only!'
