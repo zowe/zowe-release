@@ -6846,7 +6846,7 @@ if (cliNodejsSDKTypedoc['path']) {
 	releaseArtifacts['cli-nodejs-sdk-typedoc'] = {}
 	releaseArtifacts['cli-nodejs-sdk-typedoc']['source'] = cliNodejsSDKTypedoc
 	releaseArtifacts['cli-nodejs-sdk-typedoc']['target'] = zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-typedoc-1*.zip'].replace(/1\*/g,releaseVersion)
-	logValidate(`>>[validate 16/16]>> Found Zowe CLI NodeJS SDK ${releaseArtifacts['cli-nodejs-sdk-typedoc']['source']['path']}.`)
+	logValidate(`>>[validate 16/16]>> Found Zowe CLI NodeJS Typedoc SDK ${releaseArtifacts['cli-nodejs-sdk-typedoc']['source']['path']}.`)
 }
 
 // write to file and print content, this file will be used in promote step in workflow
