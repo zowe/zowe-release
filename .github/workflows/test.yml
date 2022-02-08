@@ -1,4 +1,4 @@
-name: Zowe Release
+name: Test
 on:
   push
 
