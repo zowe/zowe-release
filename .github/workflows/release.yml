@@ -8,19 +8,19 @@ on:
     inputs:
       zowe-artifact-dir:
         description: 'ZOWE_ARTIFACT_DIR'
-        default: '1.27.0-RC'
+        default: 'x.xx.x-RC|SNAPSHOT'
         required: true
       zowe-build-name:
         description: 'ZOWE_BUILD_NAME'
-        default: 'zowe-install-packaging/rc'
+        default: 'zowe-install-packaging/rc|master'
         required: true
       zowe-build-number:
         description: 'ZOWE_BUILD_NUMBER'
         required: true
-        default: '214'
+        default: 'xxx'
       zowe-release-version:
         description: 'ZOWE_RELEASE_VERSION'
-        default: '1.9999999.9999999-RC1'
+        default: 'x.xx.x|-RCx'
         required: true
       force-sign:
         type: boolean
