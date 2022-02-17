@@ -17,7 +17,7 @@ jobs:
           poll-frequency: 3
           #inputs-json-string: '{"BUILD_SMPE":"true","BUILD_DOCKER":"true","BUILD_KUBERNETES":"true"}'
         env:
-          DEBUG: 'zowe-actions:shared-actions:workflow-remote-call-wait'
+          DEBUG: 'workflow-remote-call-wait'
 
 
   # call-test-workflow:
