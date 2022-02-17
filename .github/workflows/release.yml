@@ -437,21 +437,21 @@ jobs:
           # copy cli package vnext
           cli_package_next_search=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".from')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".sourcePath')"/*/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".sourceFiles."zowe-cli-package-next-*.zip"')
           cli_package_next_src=$(jfrog_search_latest $cli_package_next_search)
-          cli_package_next_tgt_filename=$(echo ${cli_package_next_src##*/} | sed "s#-RC1##g")  
+          cli_package_next_tgt_filename=$(echo ${cli_package_next_src##*/} | sed "s#-RC[0-9]##g")  
           cli_package_next_tgt=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".to')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".targetPath')"/"$cli_package_next_tgt_filename
           jfrog rt copy --flat "$cli_package_next_src" "$cli_package_next_tgt"
 
           # copy cli plugin vnext
           cli_plugins_next_search=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".from')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".sourcePath')"/*/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".sourceFiles."zowe-cli-plugins-next-*.zip"')
           cli_plugins_next_src=$(jfrog_search_latest $cli_plugins_next_search)
-          cli_plugins_next_tgt_filename=$(echo ${cli_plugins_next_src##*/} | sed "s#-RC1##g")  
+          cli_plugins_next_tgt_filename=$(echo ${cli_plugins_next_src##*/} | sed "s#-RC[0-9]##g")  
           cli_plugins_next_tgt=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".to')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-next".targetPath')"/"$cli_plugins_next_tgt_filename
           jfrog rt copy --flat "$cli_plugins_next_src" "$cli_plugins_next_tgt"
 
           # copy cli sdk vnext
           cli_sdk_next_search=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".from')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".sourcePath')"/*/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".sourceFiles."zowe-nodejs-sdk-next-*.zip"')
           cli_sdk_next_src=$(jfrog_search_latest $cli_sdk_next_search)
-          cli_sdk_next_tgt_filename=$(echo ${cli_sdk_next_src##*/} | sed "s#-RC1##g")  
+          cli_sdk_next_tgt_filename=$(echo ${cli_sdk_next_src##*/} | sed "s#-RC[0-9]##g")  
           cli_sdk_next_tgt=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".to')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".targetPath')"/"$cli_sdk_next_tgt_filename
           jfrog rt copy --flat "$cli_sdk_next_src" "$cli_sdk_next_tgt"
 
