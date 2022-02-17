@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  call-build-workflow:
+  run-nightly-pipeline:
     runs-on: ubuntu-latest
     steps:
       - name: 'Call build workflow'
