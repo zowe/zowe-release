@@ -14,7 +14,7 @@ jobs:
           repo: zowe-install-packaging
           workflow-filename: build-packaging.yml
           branch-name: users/tom/repository-dispatch
-          poll-frequency: 3
+          poll-frequency: 2
           #inputs-json-string: '{"BUILD_SMPE":"true","BUILD_DOCKER":"true","BUILD_KUBERNETES":"true"}'
         # env:
         #   DEBUG: 'workflow-remote-call-wait'
