@@ -94,330 +94,330 @@ jobs:
           cat zowe-release-v2.json
           echo ZOWE_RELEASE_JSON=zowe-release-v2.json >> $GITHUB_ENV
 
-      # - name: '[Prep 5] Create various folders for later steps to use'
-      #   run: |
-      #     # create folders under root project dir
-      #     mkdir ${{ env.LOCAL_RELEASE_FOLDER }}
-      #     mkdir ${{ env.TAG_DIR }}
-      #     mkdir ${{ env.ORIGINAL_STAGING_DIR }}
-      #     mkdir ${{ env.PROMOTE_PTF_DIR }}
+      - name: '[Prep 5] Create various folders for later steps to use'
+        run: |
+          # create folders under root project dir
+          mkdir ${{ env.LOCAL_RELEASE_FOLDER }}
+          mkdir ${{ env.TAG_DIR }}
+          mkdir ${{ env.ORIGINAL_STAGING_DIR }}
+          mkdir ${{ env.PROMOTE_PTF_DIR }}
 
-      # - name: '[Validate 1] Validate zowe artifacts'
-      #   id: validate
-      #   uses: ./validate
-      #   with:
-      #     build-name: ${{ github.event.inputs.zowe-build-name }}
-      #     build-num: ${{ github.event.inputs.zowe-build-number }}
-      #     release-version: ${{ github.event.inputs.zowe-release-version }}
-      #   # env:
-      #   #   DEBUG: 'zowe-release:validate'
+      - name: '[Validate 1] Validate zowe artifacts'
+        id: validate
+        uses: ./validate
+        with:
+          build-name: ${{ github.event.inputs.zowe-build-name }}
+          build-num: ${{ github.event.inputs.zowe-build-number }}
+          release-version: ${{ github.event.inputs.zowe-release-version }}
+        # env:
+        #   DEBUG: 'zowe-release:validate'
 
-      # # Above step 'Validate' will generate a file (name is stored in its outputs.PROMOTE_JSON_FILE_NAME_FULL)
-      # # file name is: promote-artifacts.json
-      # # this can be used in many later step: promote, sign
+      # Above step 'Validate' will generate a file (name is stored in its outputs.PROMOTE_JSON_FILE_NAME_FULL)
+      # file name is: promote-artifacts.json
+      # this can be used in many later step: promote, sign
 
-      # - name: '[Validate 2] Print promote-artifacts.json'
-      #   run: cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
+      - name: '[Validate 2] Print promote-artifacts.json'
+        run: cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
 
-      # - name: '[Source - formal release only!] Generate source build'
-      #   timeout-minutes: 10
-      #   if: env.IS_FORMAL_RELEASE == 'true'
-      #   run: |
-      #     export GITHUB_USERNAME=${{ secrets.ZOWE_ROBOT_USER }}
-      #     export GITHUB_PASSWORD=${{ secrets.ZOWE_ROBOT_TOKEN }}
-      #     ./.dependency/prepare_source_zip.sh
-      #     zip -r ${{ env.LOCAL_RELEASE_FOLDER }}/zowe_sources-${{ github.event.inputs.zowe-release-version }}.zip ${{ env.LOCAL_RELEASE_FOLDER }}/source_zip
+      - name: '[Source - formal release only!] Generate source build'
+        timeout-minutes: 10
+        if: env.IS_FORMAL_RELEASE == 'true'
+        run: |
+          export GITHUB_USERNAME=${{ secrets.ZOWE_ROBOT_USER }}
+          export GITHUB_PASSWORD=${{ secrets.ZOWE_ROBOT_TOKEN }}
+          ./.dependency/prepare_source_zip.sh
+          zip -r ${{ env.LOCAL_RELEASE_FOLDER }}/zowe_sources-${{ github.event.inputs.zowe-release-version }}.zip ${{ env.LOCAL_RELEASE_FOLDER }}/source_zip
 
-      # - name: '[Promote 1] Promote (jfrog rt copy)'
-      #   timeout-minutes: 10
-      #   id: promote
-      #   uses: ./promote
-      #   with:
-      #     promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
-      #     release-version: ${{ github.event.inputs.zowe-release-version }}
-      #   # env:
-      #   #   DEBUG: 'zowe-release:promote'
+      - name: '[Promote 1] Promote (jfrog rt copy)'
+        timeout-minutes: 10
+        id: promote
+        uses: ./promote
+        with:
+          promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
+          release-version: ${{ github.event.inputs.zowe-release-version }}
+        # env:
+        #   DEBUG: 'zowe-release:promote'
       
-      # # promote step above will also create a release artifacts download spec file for next download step to consume
-      # # file name is stored in its outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE
-      # # file name will be: release-artifacts-download-spec.json
+      # promote step above will also create a release artifacts download spec file for next download step to consume
+      # file name is stored in its outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE
+      # file name will be: release-artifacts-download-spec.json
 
-      # - name: '[Promote 2] Print release-artifacts-download-spec.json'
-      #   run: cat ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }}
+      - name: '[Promote 2] Print release-artifacts-download-spec.json'
+        run: cat ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }}
 
-      # - name: '[Sign 1 - formal release or force sign only!] Download released artifacts'
-      #   timeout-minutes: 20
-      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
-      #   run: |
-      #     GREEN='\033[0;32m'
-      #     RED='\033[0;31m'
-      #     NC='\033[0m'
-      #     success_count=$(jfrog rt download --threads 10 --spec ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }} | jq -r ".totals.success")
-      #     if [[ -z "$success_count" ]] || [[ "$success_count" != ${{ env.CORRECT_NUM_OF_RELEASE_ARTIFACTS }} ]]; then
-      #       echo -e "${RED}\nmissing some release artifacts, I have only found $success_count. Should be ${{ env.CORRECT_NUM_OF_RELEASE_ARTIFACTS }}."
-      #       exit 1
-      #     else
-      #       echo
-      #       echo -e "${GREEN}I have downloaded $success_count artifacts, looks okay, may proceed.${NC}\n"
-      #     fi
+      - name: '[Sign 1 - formal release or force sign only!] Download released artifacts'
+        timeout-minutes: 20
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
+        run: |
+          GREEN='\033[0;32m'
+          RED='\033[0;31m'
+          NC='\033[0m'
+          success_count=$(jfrog rt download --threads 10 --spec ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }} | jq -r ".totals.success")
+          if [[ -z "$success_count" ]] || [[ "$success_count" != ${{ env.CORRECT_NUM_OF_RELEASE_ARTIFACTS }} ]]; then
+            echo -e "${RED}\nmissing some release artifacts, I have only found $success_count. Should be ${{ env.CORRECT_NUM_OF_RELEASE_ARTIFACTS }}."
+            exit 1
+          else
+            echo
+            echo -e "${GREEN}I have downloaded $success_count artifacts, looks okay, may proceed.${NC}\n"
+          fi
       
-      # - name: '[Sign 2 - formal release or force sign only!] Sign prep'
-      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
-      #   id: sign-prep
-      #   run: |
-      #     private_keyfile_path="${{ runner.temp }}/private.key"
-      #     echo "${{ secrets.GPG_PRIVATE_KEY }}" > $private_keyfile_path
-      #     echo ::set-output name=PRIVATE_KEYFILE_PATH::$private_keyfile_path
+      - name: '[Sign 2 - formal release or force sign only!] Sign prep'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
+        id: sign-prep
+        run: |
+          private_keyfile_path="${{ runner.temp }}/private.key"
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" > $private_keyfile_path
+          echo ::set-output name=PRIVATE_KEYFILE_PATH::$private_keyfile_path
 
-      # - name: '[Sign 3 - formal release or force sign only!] Actual sign work'
-      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
-      #   id: sign
-      #   timeout-minutes: 20
-      #   uses: ./sign
-      #   with:
-      #     promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
-      #     release-version: ${{ github.event.inputs.zowe-release-version }}
-      #     key-id: ${{ secrets.GPG_KEY_ID }}
-      #     private-key-path: ${{ steps.sign-prep.outputs.PRIVATE_KEYFILE_PATH }}
-      #     private-key-passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
+      - name: '[Sign 3 - formal release or force sign only!] Actual sign work'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
+        id: sign
+        timeout-minutes: 20
+        uses: ./sign
+        with:
+          promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
+          release-version: ${{ github.event.inputs.zowe-release-version }}
+          key-id: ${{ secrets.GPG_KEY_ID }}
+          private-key-path: ${{ steps.sign-prep.outputs.PRIVATE_KEYFILE_PATH }}
+          private-key-passphrase: ${{ secrets.GPG_KEY_PASSPHRASE }}
 
-      # # sign step will produce a file sign-and-upload-artifacts.json which will be used next to upload,
-      # #  file name is stored in output SIGN_JSON_FILE_NAME_FULL
+      # sign step will produce a file sign-and-upload-artifacts.json which will be used next to upload,
+      #  file name is stored in output SIGN_JSON_FILE_NAME_FULL
 
-      # - name: '[Sign 4 - formal release or force sign only!] Print sign-and-upload-artifacts.json'
-      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
-      #   run: cat ${{ steps.sign.outputs.SIGN_JSON_FILE_NAME_FULL }}
+      - name: '[Sign 4 - formal release or force sign only!] Print sign-and-upload-artifacts.json'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
+        run: cat ${{ steps.sign.outputs.SIGN_JSON_FILE_NAME_FULL }}
 
-      # - name: '[Sign 5 - formal release or force sign only!] Upload sign and hash files'
-      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
-      #   timeout-minutes: 20
-      #   run: |
-      #     GREEN='\033[0;32m'
-      #     RED='\033[0;31m'
-      #     NC='\033[0m'
-      #     expected_artifacts_count=${{ env.CORRECT_NUM_OF_SIGNED_ARTIFACTS }}
-      #     if [[ -z "${{ env.IS_FORMAL_RELEASE }}" ]]; then
-      #       ((expected_artifacts_count--))
-      #     fi
-      #     success_count=$(jfrog rt upload --threads 10 --spec ${{ steps.sign.outputs.SIGN_JSON_FILE_NAME_FULL }} | jq -r ".totals.success")
-      #     if [[ -z "$success_count" ]] || [[ "$success_count" != "$expected_artifacts_count" ]]; then
-      #       echo -e "${RED}\nmissing some signed upload artifacts, I have only uploaded $success_count. Should be $expected_artifacts_count."
-      #       exit 1
-      #     else
-      #       echo
-      #       echo -e "${GREEN}I have uploaded $success_count artifacts, looks okay, may proceed.${NC}\n"
-      #     fi
+      - name: '[Sign 5 - formal release or force sign only!] Upload sign and hash files'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
+        timeout-minutes: 20
+        run: |
+          GREEN='\033[0;32m'
+          RED='\033[0;31m'
+          NC='\033[0m'
+          expected_artifacts_count=${{ env.CORRECT_NUM_OF_SIGNED_ARTIFACTS }}
+          if [[ -z "${{ env.IS_FORMAL_RELEASE }}" ]]; then
+            ((expected_artifacts_count--))
+          fi
+          success_count=$(jfrog rt upload --threads 10 --spec ${{ steps.sign.outputs.SIGN_JSON_FILE_NAME_FULL }} | jq -r ".totals.success")
+          if [[ -z "$success_count" ]] || [[ "$success_count" != "$expected_artifacts_count" ]]; then
+            echo -e "${RED}\nmissing some signed upload artifacts, I have only uploaded $success_count. Should be $expected_artifacts_count."
+            exit 1
+          else
+            echo
+            echo -e "${GREEN}I have uploaded $success_count artifacts, looks okay, may proceed.${NC}\n"
+          fi
 
-      # - name: '[Tag 1 - formal release or force tag only!] Get zowe revision'
-      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-tag == 'true' }}
-      #   id: tag-prep
-      #   run: |   
-      #     zowe_revision=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '.zowe.revision')
-      #     if [[ -z "$zowe_revision" ]]; then
-      #       RED='\033[0;31m'
-      #       echo -e "${RED}\n missing zowe revision - it is not parsed properly, please check step: [Validate] Print promote-artifacts.json to find out what went wrong"
-      #       exit 1
-      #     fi
-      #     echo ::set-output name=ZOWE_REVISION::$zowe_revision
+      - name: '[Tag 1 - formal release or force tag only!] Get zowe revision'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-tag == 'true' }}
+        id: tag-prep
+        run: |   
+          zowe_revision=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '.zowe.revision')
+          if [[ -z "$zowe_revision" ]]; then
+            RED='\033[0;31m'
+            echo -e "${RED}\n missing zowe revision - it is not parsed properly, please check step: [Validate] Print promote-artifacts.json to find out what went wrong"
+            exit 1
+          fi
+          echo ::set-output name=ZOWE_REVISION::$zowe_revision
 
-      # - name: '[Tag 2 - formal release or force tag only!] Clone master branch to prepare for tagging'
-      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-tag == 'true' }}
-      #   uses: actions/checkout@v2
-      #   with: 
-      #     repository: ${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
-      #     ref: ${{ steps.tag-prep.outputs.ZOWE_REVISION }}
-      #     token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
-      #     path: ${{ env.TAG_DIR }}
+      - name: '[Tag 2 - formal release or force tag only!] Clone master branch to prepare for tagging'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-tag == 'true' }}
+        uses: actions/checkout@v2
+        with: 
+          repository: ${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
+          ref: ${{ steps.tag-prep.outputs.ZOWE_REVISION }}
+          token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
+          path: ${{ env.TAG_DIR }}
 
-      # - name: '[Tag 3 - formal release or force tag only!] Actual tag branch work'
-      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-tag == 'true' }}
-      #   timeout-minutes: 10
-      #   run: |
-      #     GREEN='\033[0;32m'
-      #     RED='\033[0;31m'
-      #     NC='\033[0m'
+      - name: '[Tag 3 - formal release or force tag only!] Actual tag branch work'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-tag == 'true' }}
+        timeout-minutes: 10
+        run: |
+          GREEN='\033[0;32m'
+          RED='\033[0;31m'
+          NC='\033[0m'
 
-      #     zowe_release_version=${{ github.event.inputs.zowe-release-version }}
-      #     zowe_revision=${{ steps.tag-prep.outputs.ZOWE_REVISION }}
-      #     echo ">>> Tagging $zowe_revision as $zowe_release_version ..."
+          zowe_release_version=${{ github.event.inputs.zowe-release-version }}
+          zowe_revision=${{ steps.tag-prep.outputs.ZOWE_REVISION }}
+          echo ">>> Tagging $zowe_revision as $zowe_release_version ..."
           
-      #     cd ${{ env.TAG_DIR }}
-      #     commit=$(git show --format="%H" -s HEAD)
-      #     if [[ "$commit" != "$zowe_revision" ]]; then
-      #       echo -e "${RED}\n Failed to checkout $zowe_revision for tagging. The head of this branch is $commit "
-      #       exit 1
-      #     fi
-      #     git tag "v$zowe_release_version"
-      #     git push origin "v$zowe_release_version"
+          cd ${{ env.TAG_DIR }}
+          commit=$(git show --format="%H" -s HEAD)
+          if [[ "$commit" != "$zowe_revision" ]]; then
+            echo -e "${RED}\n Failed to checkout $zowe_revision for tagging. The head of this branch is $commit "
+            exit 1
+          fi
+          git tag "v$zowe_release_version"
+          git push origin "v$zowe_release_version"
 
-      # - name: '[Promote PTF 1 - formal release only!] Clone staging branch'
-      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
-      #   uses: actions/checkout@v2
-      #   with:
-      #     repository: ${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
-      #     ref: staging
-      #     token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
-      #     path: ${{ env.ORIGINAL_STAGING_DIR }}
+      - name: '[Promote PTF 1 - formal release only!] Clone staging branch'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
+          ref: staging
+          token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
+          path: ${{ env.ORIGINAL_STAGING_DIR }}
 
-      # - name: '[Promote PTF 2 - formal release only!] Clone staging branch to a diff path to make new branch from it'
-      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
-      #   uses: actions/checkout@v2
-      #   with:
-      #     repository: ${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
-      #     ref: staging
-      #     token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
-      #     path: ${{ env.PROMOTE_PTF_DIR }}
+      - name: '[Promote PTF 2 - formal release only!] Clone staging branch to a diff path to make new branch from it'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
+          ref: staging
+          token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
+          path: ${{ env.PROMOTE_PTF_DIR }}
 
-      # - name: '[Promote PTF 3 - formal release only!] Create a new branch (git checkout -b)'
-      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
-      #   run: |
-      #     cd ${{ env.PROMOTE_PTF_DIR }}
-      #     git checkout -b "users/robot/promote-ptf-from-${{ github.run_number }}"
+      - name: '[Promote PTF 3 - formal release only!] Create a new branch (git checkout -b)'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
+        run: |
+          cd ${{ env.PROMOTE_PTF_DIR }}
+          git checkout -b "users/robot/promote-ptf-from-${{ github.run_number }}"
 
-      # - name: '[Promote PTF 4 - formal release only!] Download smpe-promote.tar'
-      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
-      #   uses: zowe-actions/shared-actions/jfrog-download@main
-      #   with:
-      #     default-target-path: ${{ env.LOCAL_RELEASE_FOLDER }}/promote-ptf/smpe-promote.tar
-      #     source-path-or-pattern: ${{ env.SMPE_PTF_PROMOTE_TAR_PATH }}
-      #     extra-options: --flat=true
-      #     expected-count: 1
+      - name: '[Promote PTF 4 - formal release only!] Download smpe-promote.tar'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
+        uses: zowe-actions/shared-actions/jfrog-download@main
+        with:
+          default-target-path: ${{ env.LOCAL_RELEASE_FOLDER }}/promote-ptf/smpe-promote.tar
+          source-path-or-pattern: ${{ env.SMPE_PTF_PROMOTE_TAR_PATH }}
+          extra-options: --flat=true
+          expected-count: 1
 
-      # - name: '[Promote PTF 5 - formal release only!] Doing remaining work'
-      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
-      #   run: |
-      #     # at the beginning, we are at root project dir of zowe-release
-      #     # store the path of original project root dir
-      #     original_staging_dir_path=$GITHUB_WORKSPACE/${{ env.ORIGINAL_STAGING_DIR }}
+      - name: '[Promote PTF 5 - formal release only!] Doing remaining work'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
+        run: |
+          # at the beginning, we are at root project dir of zowe-release
+          # store the path of original project root dir
+          original_staging_dir_path=$GITHUB_WORKSPACE/${{ env.ORIGINAL_STAGING_DIR }}
 
-      #     # clone smpe-promote.sh to smpe-promote.sh.bak
-      #     cd ${{ env.PROMOTE_PTF_DIR }}/smpe/bld
-      #     cp smpe-promote.sh smpe-promote.sh.bak
+          # clone smpe-promote.sh to smpe-promote.sh.bak
+          cd ${{ env.PROMOTE_PTF_DIR }}/smpe/bld
+          cp smpe-promote.sh smpe-promote.sh.bak
           
-      #     # copy the original smpe-promote.sh to the new checkout branch 
-      #     cp "$original_staging_dir_path/smpe/bld/smpe-promote.sh" .
+          # copy the original smpe-promote.sh to the new checkout branch 
+          cp "$original_staging_dir_path/smpe/bld/smpe-promote.sh" .
 
-      #     # run the original smpe-promote shell script
-      #     ./smpe-promote.sh -d -p "$GITHUB_WORKSPACE/${{ env.LOCAL_RELEASE_FOLDER }}/promote-ptf/smpe-promote.tar"
+          # run the original smpe-promote shell script
+          ./smpe-promote.sh -d -p "$GITHUB_WORKSPACE/${{ env.LOCAL_RELEASE_FOLDER }}/promote-ptf/smpe-promote.tar"
           
-      #     # rename(revert) the smpe-promote.sh.bak to discard git changes
-      #     mv smpe-promote.sh.bak smpe-promote.sh
+          # rename(revert) the smpe-promote.sh.bak to discard git changes
+          mv smpe-promote.sh.bak smpe-promote.sh
           
-      #     # don't commit in this PR yet
+          # don't commit in this PR yet
           
-      #     # now, show change status
-      #     cd $GITHUB_WORKSPACE/${{ env.PROMOTE_PTF_DIR }}
-      #     git status
+          # now, show change status
+          cd $GITHUB_WORKSPACE/${{ env.PROMOTE_PTF_DIR }}
+          git status
 
-      #     git config user.name ${{ secrets.ZOWE_ROBOT_USER }}
-      #     git config user.email ${{ secrets.ZOWE_ROBOT_EMAIL }}
+          git config user.name ${{ secrets.ZOWE_ROBOT_USER }}
+          git config user.email ${{ secrets.ZOWE_ROBOT_EMAIL }}
 
-      #     # commit all changes
-      #     git add .
-      #     git commit -s -m "Promote PTF after release v${{ github.event.inputs.zowe-release-version }}"
+          # commit all changes
+          git add .
+          git commit -s -m "Promote PTF after release v${{ github.event.inputs.zowe-release-version }}"
 
-      #     # push before creating PR
-      #     git push https://${{ secrets.ZOWE_ROBOT_USER }}:${{ secrets.ZOWE_ROBOT_TOKEN }}@github.com/${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }} "users/robot/promote-ptf-from-${{ github.run_number }}"
+          # push before creating PR
+          git push https://${{ secrets.ZOWE_ROBOT_USER }}:${{ secrets.ZOWE_ROBOT_TOKEN }}@github.com/${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }} "users/robot/promote-ptf-from-${{ github.run_number }}"
         
-      # - name: '[Promote PTF 6 - formal release only!] Create a new Pull Request'
-      #   uses: actions/github-script@v5
-      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
-      #   id: promote-ptf-6
-      #   with:
-      #     github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
-      #     script: |
-      #       // await means to wait this functions finishes then proceed
-      #       var out = await github.rest.pulls.create({
-      #         owner: '${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}',
-      #         repo: '${{ env.ZOWE_INSTALL_PACKAGING_REPO }}',
-      #         title: 'Automatically Promote PTF for v${{ github.event.inputs.zowe-release-version }} after release by zowe robot',
-      #         head: 'users/robot/promote-ptf-from-${{ github.run_number }}',
-      #         base: 'staging'
-      #       });
-      #       console.log(`The pull request is at: ${out.data.html_url}`);
-      #       return out.data.number;
-      #     result-encoding: string
+      - name: '[Promote PTF 6 - formal release only!] Create a new Pull Request'
+        uses: actions/github-script@v5
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
+        id: promote-ptf-6
+        with:
+          github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
+          script: |
+            // await means to wait this functions finishes then proceed
+            var out = await github.rest.pulls.create({
+              owner: '${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}',
+              repo: '${{ env.ZOWE_INSTALL_PACKAGING_REPO }}',
+              title: 'Automatically Promote PTF for v${{ github.event.inputs.zowe-release-version }} after release by zowe robot',
+              head: 'users/robot/promote-ptf-from-${{ github.run_number }}',
+              base: 'staging'
+            });
+            console.log(`The pull request is at: ${out.data.html_url}`);
+            return out.data.number;
+          result-encoding: string
 
-      # - name: '[Promote PTF 7 - formal release only!] Add PR reviewers'
-      #   if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' && steps.promote-ptf-6.outputs.result != '' }}
-      #   uses: actions/github-script@v5
-      #   with:
-      #     github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
-      #     script: |
-      #       github.rest.pulls.requestReviewers({
-      #         owner: '${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}',
-      #         repo: '${{ env.ZOWE_INSTALL_PACKAGING_REPO }}',
-      #         pull_number: ${{ steps.promote-ptf-6.outputs.result }},
-      #         reviewers: [
-      #           'jackjia-ibm','FlappiTomic'
-      #         ]
-      #       });
+      - name: '[Promote PTF 7 - formal release only!] Add PR reviewers'
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' && steps.promote-ptf-6.outputs.result != '' }}
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
+          script: |
+            github.rest.pulls.requestReviewers({
+              owner: '${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}',
+              repo: '${{ env.ZOWE_INSTALL_PACKAGING_REPO }}',
+              pull_number: ${{ steps.promote-ptf-6.outputs.result }},
+              reviewers: [
+                'jackjia-ibm','FlappiTomic'
+              ]
+            });
 
-      # # only execute this in v1 release pipeline & formal release
-      # - name: Publish docker images - formal release only!
-      #   if: ${{ startsWith(github.event.inputs.zowe-artifact-dir, '1') && env.IS_FORMAL_RELEASE == 'true' }}
-      #   timeout-minutes: 120
-      #   run: |
-      #     docker_s390x=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-s390x"')
-      #     docker_amd64=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-amd64"')
-      #     docker_amd64_sources=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-amd64-sources"')
-      #     docker_s390x_sources=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-s390x-sources"')
+      # only execute this in v1 release pipeline & formal release
+      - name: Publish docker images - formal release only!
+        if: ${{ startsWith(github.event.inputs.zowe-artifact-dir, '1') && env.IS_FORMAL_RELEASE == 'true' }}
+        timeout-minutes: 120
+        run: |
+          docker_s390x=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-s390x"')
+          docker_amd64=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-amd64"')
+          docker_amd64_sources=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-amd64-sources"')
+          docker_s390x_sources=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '."docker-s390x-sources"')
           
-      #     if [[ -z "$docker_s390x" ]] && [[ -z "$docker_amd64" ]]; then
-      #       RED='\033[0;31m'
-      #       echo -e "${RED}\n missing docker amd64 or docker s390x - they are not parsed properly, please check step: [Validate] Print promote-artifacts.json to find out what went wrong"
-      #       exit 1
-      #     fi
+          if [[ -z "$docker_s390x" ]] && [[ -z "$docker_amd64" ]]; then
+            RED='\033[0;31m'
+            echo -e "${RED}\n missing docker amd64 or docker s390x - they are not parsed properly, please check step: [Validate] Print promote-artifacts.json to find out what went wrong"
+            exit 1
+          fi
 
-      #     # login first
-      #     echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USER }}" --password-stdin
+          # login first
+          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USER }}" --password-stdin
 
-      #     # initialize everything
-      #     manifest_amends=
-      #     manifest_source_amends=
+          # initialize everything
+          manifest_amends=
+          manifest_source_amends=
           
-      #     # load images first
-      #     docker load --input .release/server-bundle.amd64-*.tar
-      #     manifest_amends+=" --amend ompzowe/server-bundle:amd64"
-      #     docker load --input .release/server-bundle.s390x-*.tar
-      #     manifest_amends+=" --amend ompzowe/server-bundle:s390x"
+          # load images first
+          docker load --input .release/server-bundle.amd64-*.tar
+          manifest_amends+=" --amend ompzowe/server-bundle:amd64"
+          docker load --input .release/server-bundle.s390x-*.tar
+          manifest_amends+=" --amend ompzowe/server-bundle:s390x"
           
-      #     if [[ -n "$docker_amd64_sources" ]]; then
-      #       # the image in tar should always be ompzowe/server-bundle:amd64-sources
-      #       docker load --input .release/server-bundle.sources.amd64-*.tar
-      #       manifest_source_amends+=" --amend ompzowe/server-bundle:amd64-sources"
-      #     fi
+          if [[ -n "$docker_amd64_sources" ]]; then
+            # the image in tar should always be ompzowe/server-bundle:amd64-sources
+            docker load --input .release/server-bundle.sources.amd64-*.tar
+            manifest_source_amends+=" --amend ompzowe/server-bundle:amd64-sources"
+          fi
           
-      #     if [[ -n "$docker_s390x_sources" ]]; then
-      #       # the image in tar should always be ompzowe/server-bundle:amd64-sources
-      #       docker load --input .release/server-bundle.sources.s390x-*.tar
-      #       manifest_source_amends+=" --amend ompzowe/server-bundle:s390x-sources"
-      #     fi
+          if [[ -n "$docker_s390x_sources" ]]; then
+            # the image in tar should always be ompzowe/server-bundle:amd64-sources
+            docker load --input .release/server-bundle.sources.s390x-*.tar
+            manifest_source_amends+=" --amend ompzowe/server-bundle:s390x-sources"
+          fi
         
-      #     # publish images
-      #     docker push ompzowe/server-bundle:amd64
-      #     docker push ompzowe/server-bundle:s390x
-      #     export DOCKER_CLI_EXPERIMENTAL=enabled
-      #     docker manifest create ompzowe/server-bundle:latest$manifest_amends
-      #     docker manifest push ompzowe/server-bundle:latest
-      #     docker manifest create ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}$manifest_amends
-      #     docker manifest push ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}
+          # publish images
+          docker push ompzowe/server-bundle:amd64
+          docker push ompzowe/server-bundle:s390x
+          export DOCKER_CLI_EXPERIMENTAL=enabled
+          docker manifest create ompzowe/server-bundle:latest$manifest_amends
+          docker manifest push ompzowe/server-bundle:latest
+          docker manifest create ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}$manifest_amends
+          docker manifest push ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}
         
-      #     # publish source images
-      #     if [[ -n "$manifest_source_amends" ]]; then
-      #       docker push ompzowe/server-bundle:amd64-sources
-      #       docker push ompzowe/server-bundle:s390x-sources
-      #       export DOCKER_CLI_EXPERIMENTAL=enabled
-      #       docker manifest create ompzowe/server-bundle:latest-sources$manifest_source_amends
-      #       docker manifest push ompzowe/server-bundle:latest-sources
-      #       docker manifest create ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}-sources$manifest_source_amends
-      #       docker manifest push ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}-sources
-      #     fi
+          # publish source images
+          if [[ -n "$manifest_source_amends" ]]; then
+            docker push ompzowe/server-bundle:amd64-sources
+            docker push ompzowe/server-bundle:s390x-sources
+            export DOCKER_CLI_EXPERIMENTAL=enabled
+            docker manifest create ompzowe/server-bundle:latest-sources$manifest_source_amends
+            docker manifest push ompzowe/server-bundle:latest-sources
+            docker manifest create ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}-sources$manifest_source_amends
+            docker manifest push ompzowe/server-bundle:v${{ github.event.inputs.zowe-release-version }}-sources
+          fi
 
       # only execute this before v2 launches
       # on-demand, sometimes for hotfix you don't have to do it
       - name: '[EXTRA] extra work involving jfrog copy cli v2 artifacts in v1 release pipeline - formal release only!'
-        #if: ${{ startsWith(github.event.inputs.zowe-artifact-dir, '1') && env.IS_FORMAL_RELEASE == 'true' }}
+        if: ${{ startsWith(github.event.inputs.zowe-artifact-dir, '1') && env.IS_FORMAL_RELEASE == 'true' }}
         run: |
           function jfrog_search_latest {
             RED='\033[0;31m'
@@ -455,10 +455,10 @@ jobs:
           cli_sdk_next_tgt=$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".to')"/"$(cat ${{ env.ZOWE_RELEASE_JSON }} | jq -r '."zowe-cli-sdk-next".targetPath')"/"$cli_sdk_next_tgt_filename
           jfrog rt copy --flat "$cli_sdk_next_src" "$cli_sdk_next_tgt"
 
-      # - name: Release result message (DevOps please click here to copy and announce)
-      #   timeout-minutes: 2
-      #   uses: ./message
-      #   with:
-      #     release-artifact-download-file: ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }}
-      #     release-version: ${{ github.event.inputs.zowe-release-version }}
-      #     build-num: ${{ github.event.inputs.zowe-build-number }}
+      - name: Release result message (DevOps please click here to copy and announce)
+        timeout-minutes: 2
+        uses: ./message
+        with:
+          release-artifact-download-file: ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }}
+          release-version: ${{ github.event.inputs.zowe-release-version }}
+          build-num: ${{ github.event.inputs.zowe-build-number }}
