@@ -417,7 +417,7 @@ jobs:
       # only execute this before v2 launches
       # on-demand, sometimes for hotfix you don't have to do it
       - name: '[EXTRA] extra work involving jfrog copy cli v2 artifacts in v1 release pipeline - formal release only!'
-        if: ${{ startsWith(github.event.inputs.zowe-artifact-dir, '1') && env.IS_FORMAL_RELEASE == 'true' }}
+        #if: ${{ startsWith(github.event.inputs.zowe-artifact-dir, '1') && env.IS_FORMAL_RELEASE == 'true' }}
         run: |
           function jfrog_search_latest {
             RED='\033[0;31m'
