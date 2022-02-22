@@ -6,7 +6,7 @@ jobs:
   run-nightly-pipeline:
     runs-on: ubuntu-latest
     steps:
-      - name: 'Call build workflow'
+      - name: 'Call Build Workflow'
         uses: zowe-actions/shared-actions/workflow-remote-call-wait@main
         with:
           github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}

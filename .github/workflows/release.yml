@@ -74,7 +74,7 @@ jobs:
           JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_TOKEN }}
 
       - name: '[Prep 3] Replace JFROG_CLI_BUILD_NAME'
-        run: echo JFROG_CLI_BUILD_NAME=${{ github.event.repository.name }}/${GITHUB_REF#refs/heads/} >> $GITHUB_ENV
+        run: echo JFROG_CLI_BUILD_NAME=${{ github.event.repository.name }}/${GITHUB_REF_NAME} >> $GITHUB_ENV
 
       - name: '[Prep 4 - v1 only!] v1: convert release json template then print'
         if: startsWith(github.event.inputs.zowe-artifact-dir, '1')
