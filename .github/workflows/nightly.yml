@@ -3,36 +3,54 @@ on:
   workflow_dispatch:
 
 jobs:
-  run-nightly-pipeline:
+  call-build-pipeline:
     runs-on: ubuntu-latest
     steps:
-      - name: 'Call Build Workflow'
+      - name: 'Call build workflow'
         uses: zowe-actions/shared-actions/workflow-remote-call-wait@main
+        id: call-build
         with:
           github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
           owner: zowe
           repo: zowe-install-packaging
           workflow-filename: build-packaging.yml
-          branch-name: users/tom/repository-dispatch
+          branch-name: staging
           poll-frequency: 2
-          #inputs-json-string: '{"BUILD_SMPE":"true","BUILD_DOCKER":"true","BUILD_KUBERNETES":"true"}'
+          inputs-json-string: '{"BUILD_SMPE":"true","BUILD_DOCKER":"true","BUILD_KUBERNETES":"true"}'
         # env:
         #   DEBUG: 'workflow-remote-call-wait'
 
+      - name: 'Report build failure if applied'
+        if: ${{ steps.call-build.outputs.workflow-run-conclusion }} != "success"
+        uses: actions/github-script@v5
+        with:
+          script: |
+            core.setFailed('Build workflow ${{ steps.call-build.outputs.workflow-run-num }} is not successful')
+    outputs:
+      build-run-num: ${{ steps.call-build.outputs.workflow-run-num }}
+    
+      
+  call-test-pipeline:
+    runs-on: ubuntu-latest
+    needs: call-build-pipeline
+    steps:
+      - name: 'Call test workflow'
+        uses: zowe-actions/shared-actions/workflow-remote-call-wait@main
+        id: call-test
+        with:
+          github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
+          owner: zowe
+          repo: zowe-install-packaging
+          workflow-filename: cicd-test.yml
+          branch-name: staging
+          poll-frequency: 3
+          inputs-json-string: '{"custom-zowe-artifactory-pattern-or-build-number":"${{ needs.call-build-pipeline.outputs.build-run-num }}"}'
 
-  # call-test-workflow:
-  #   # needs: call-build-workflow
-  #   uses: zowe/zowe-install-packaging/.github/workflows/cicd-test.yml@staging
-  #   with: 
-  #     NIGHTLY: true
-  #     test-file-server: basic/install.ts(zzow02,zzow03,zzow04);basic/install-ptf.ts(zzow02,zzow03,zzow04);basic/install-docker.ts(zzow04)
-  #   secrets:
-  #     JF_ARTIFACTORY_TOKEN: ${{ secrets.JF_ARTIFACTORY_TOKEN }}
-  #     SSH_HOST: ${{ secrets.SSH_HOST }}
-  #     SSH_PORT: ${{ secrets.SSH_PORT }}
-  #     SSH_USER: ${{ secrets.SSH_USER }}
-  #     SSH_PASSWORD: ${{ secrets.SSH_PASSWORD }}
-    # Above secrets exists in the environment, doing secrets here to mitigate a problem of reusable workflows where environment secret can
-    #   not be passed in properly
-    # More info: https://github.community/t/reusable-workflows-secrets-and-environments/203695/23
-    # it was a bit weird to pass in above secrets, hope Github team can improve on this
+      - name: 'Report test failure if applied'
+        if: ${{ steps.call-test.outputs.workflow-run-conclusion }} != "success"
+        uses: actions/github-script@v5
+        with:
+          script: |
+            core.setFailed('Test workflow ${{ steps.call-test.outputs.workflow-run-num }} is not successful')
+        # env:
+        #   DEBUG: 'workflow-remote-call-wait'
