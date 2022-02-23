@@ -70,8 +70,6 @@ jobs:
         with:
           script: |
             core.setFailed('Test workflow ${{ steps.call-test.outputs.workflow-run-num }} is not successful')
-        # env:
-        #   DEBUG: 'workflow-remote-call-wait'
     
   call-release-pipeline:
     runs-on: ubuntu-latest
@@ -100,3 +98,10 @@ jobs:
           branch-name: main
           poll-frequency: 1
           inputs-json-string: '{"zowe-artifact-dir":"${{ env.ZOWE_ART_DIR }}","zowe-build-name":"zowe-install-packaging/staging","zowe-build-number":"${{ needs.call-build-pipeline.outputs.build-run-num }}","zowe-release-version":"nightly"}'
+
+      - name: 'Report release failure if applied'
+        if: ${{ steps.call-release.outputs.workflow-run-conclusion }} != "success"
+        uses: actions/github-script@v5
+        with:
+          script: |
+            core.setFailed('Release workflow ${{ steps.call-release.outputs.workflow-run-num }} is not successful')
