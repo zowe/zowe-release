@@ -178,8 +178,10 @@ try {
         if (nightly) {
             releaseArtifacts['docker-amd64']['target'] = dockerImageAmd64['path'].split("/").pop()
         }
-		releaseArtifacts['docker-amd64']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.amd64-*.tar'].replace(/\*/g,releaseVersion)
-		logValidate(`>>[validate 7/16]>> Found Docker image amd64 version ${dockerImageAmd64['path']}.`)
+        else {
+		    releaseArtifacts['docker-amd64']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.amd64-*.tar'].replace(/\*/g,releaseVersion)
+        }
+        logValidate(`>>[validate 7/16]>> Found Docker image amd64 version ${dockerImageAmd64['path']}.`)
 	}
 } catch (e1) {
 	throw new Error(`>>> no Docker image amd64 version found in the build.`)
@@ -266,14 +268,22 @@ try {
 }
 
 // get CLI CORE build source artifact
-var cliPackages = searchArtifact(
-	`${zoweReleaseJsonObject['zowe-cli']['from']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-1*.zip']}`
-)
+var cliPackages
+if (nightly) {
+    cliPackages = searchArtifact(
+        `${zoweReleaseJsonObject['zowe-cli']['nightlyFrom']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-1*.zip']}`
+    )
+}
+else {
+    cliPackages = searchArtifact(
+        `${zoweReleaseJsonObject['zowe-cli']['from']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-1*.zip']}`
+    )
+}
 if (cliPackages['path']) {
 	releaseArtifacts['cli'] = {}
 	releaseArtifacts['cli']['source'] = cliPackages
     if (nightly) {
-        releaseArtifacts['cli']['target'] = cliPackages['path'].split('/').pop()
+        releaseArtifacts['cli']['target'] = 'cli/' + cliPackages['path'].split('/').pop() // prefix cli is to put cli artifacts copied to org/zowe/nightly/cli/*
     }
     else {
 	    releaseArtifacts['cli']['target'] = zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-1*.zip'].replace(/1\*/g,releaseVersion)
@@ -282,14 +292,22 @@ if (cliPackages['path']) {
 }
 
 // get CLI PLUGINS builds source artifact
-var cliPlugins = searchArtifact(
-	`${zoweReleaseJsonObject['zowe-cli']['from']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-1*.zip']}`
-)
+var cliPlugins
+if (nightly) {
+    cliPlugins = searchArtifact(
+	    `${zoweReleaseJsonObject['zowe-cli']['nightlyFrom']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-1*.zip']}`
+    )
+}
+else {
+    cliPlugins = searchArtifact(
+	    `${zoweReleaseJsonObject['zowe-cli']['from']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-1*.zip']}`
+    )
+}
 if (cliPlugins['path']) {
 	releaseArtifacts['cli-plugins'] = {}
 	releaseArtifacts['cli-plugins']['source'] = cliPlugins
     if (nightly) {
-        releaseArtifacts['cli-plugins']['target'] = cliPlugins['path'].split('/').pop()
+        releaseArtifacts['cli-plugins']['target'] = 'cli/' + cliPlugins['path'].split('/').pop()     // prefix cli is to put cli artifacts copied to org/zowe/nightly/cli/*
     }
     else {
         releaseArtifacts['cli-plugins']['target'] = zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-1*.zip'].replace(/1\*/g,releaseVersion)

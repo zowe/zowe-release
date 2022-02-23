@@ -16,6 +16,7 @@
     },
 
     "zowe-cli" : {
+        "nightlyFrom" : "libs-snapshot-local",
         "from" : "libs-release-local",
         "to" : "libs-release-local",
         "sourcePath" : "org/zowe/cli",
