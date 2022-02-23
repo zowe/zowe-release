@@ -27,23 +27,31 @@ utils.mandatoryInputCheck(buildName, 'build-name')
 utils.mandatoryInputCheck(buildNum, 'build-num')
 utils.mandatoryInputCheck(releaseVersion, 'release-version')
 
-console.log(`Checking if ${releaseVersion} is a valid semantic version ...`)
-// validate release version scheme
-// thanks semver/semver, this regular expression comes from
-// https://github.com/semver/semver/issues/232#issuecomment-405596809
-// in javascript regex \d means [0-9]; in bash you should do [0-9]
-if (releaseVersion.match(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/)) {
-    logValidate('YES')
-} else {
-    throw new Error(`${releaseVersion} is not a valid semantic version.`)
-}
+var nightly = false
 
-if (releaseVersion.match(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/)) {
-    core.exportVariable('IS_FORMAL_RELEASE', 'true')
-    console.log(`>>>> Version ${releaseVersion} is considered as a FORMAL RELEASE.`)
+console.log(`Checking if ${releaseVersion} is a valid semantic version ...`)
+if (releaseVersion.includes('nightly')) {
+    logValidate('Skip check since it is nightly pipeline')
+    nightly = true
 }
 else {
-    console.log(`>>>> Version ${releaseVersion} is NOT considered as a FORMAL RELEASE.`)
+    // validate release version scheme
+    // thanks semver/semver, this regular expression comes from
+    // https://github.com/semver/semver/issues/232#issuecomment-405596809
+    // in javascript regex \d means [0-9]; in bash you should do [0-9]
+    if (releaseVersion.match(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/)) {
+        logValidate('YES')
+    } else {
+        throw new Error(`${releaseVersion} is not a valid semantic version.`)
+    }
+
+    if (releaseVersion.match(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/)) {
+        core.exportVariable('IS_FORMAL_RELEASE', 'true')
+        console.log(`>>>> Version ${releaseVersion} is considered as a FORMAL RELEASE.`)
+    }
+    else {
+        console.log(`>>>> Version ${releaseVersion} is NOT considered as a FORMAL RELEASE.`)
+    }
 }
 
 // init
@@ -53,20 +61,26 @@ var zoweReleaseJsonObject = JSON.parse(fs.readFileSync(projectRootPath + '/' + z
 // this is the target Artifactory path will be released to
 var releaseFilesPattern = `${zoweReleaseJsonObject['zowe']['to']}/org/zowe/${releaseVersion}/*`
 
-// check artifactory release pattern
-console.log(`Checking if ${releaseVersion} already exists in Artifactory ...`)
-var searchResult = searchArtifact(releaseFilesPattern)
-if (!searchResult || searchResult == null || searchResult == '') {
-	logValidate(`>>[validate 1/16]>> Target artifactory folder ${releaseFilesPattern} doesn\'t exist.`)
-} else {
-	throw new Error(`Zowe version ${releaseVersion} already exists (${releaseFilesPattern})`)
-}
+if (!nightly) {
+    // check artifactory release pattern
+    console.log(`Checking if ${releaseVersion} already exists in Artifactory ...`)
+    var searchResult = searchArtifact(releaseFilesPattern)
+    if (!searchResult || searchResult == null || searchResult == '') {
+        logValidate(`>>[validate 1/16]>> Target artifactory folder ${releaseFilesPattern} doesn\'t exist.`)
+    } else {
+        throw new Error(`Zowe version ${releaseVersion} already exists (${releaseFilesPattern})`)
+    }
 
-// check if tag already exists
-if (github.tagExistsRemote(`v${releaseVersion}`)) {
-	throw new Error(`Repository tag v${releaseVersion} already exists.`)
-} else {
-	logValidate(`>>[validate 2/16]>> Repository tag v${releaseVersion} doesn't exist.`)
+    // check if tag already exists
+    if (github.tagExistsRemote(`v${releaseVersion}`)) {
+        throw new Error(`Repository tag v${releaseVersion} already exists.`)
+    } else {
+        logValidate(`>>[validate 2/16]>> Repository tag v${releaseVersion} doesn't exist.`)
+    }
+}
+else {
+    logValidate(`>>[validate 1/16]>> SKIPPED`)
+    logValidate(`>>[validate 2/16]>> SKIPPED`)
 }
 
 // start to build up a new json derived from the zowe release json file
@@ -90,17 +104,22 @@ else {
 }
 logValidate(`>>[validate 3/16]>> Found Zowe build ${releaseArtifacts['zowe']['source']['path']}.`)
 
-// try to get Zowe build commit hash
-if (releaseArtifacts['zowe']['source']['props']['vcs.revision'][0] != '' ) {
-	releaseArtifacts['zowe']['revision'] = releaseArtifacts['zowe']['source']['props']['vcs.revision'][0]
-}
+if (!nightly) {
+    // try to get Zowe build commit hash
+    if (releaseArtifacts['zowe']['source']['props']['vcs.revision'][0] != '' ) {
+        releaseArtifacts['zowe']['revision'] = releaseArtifacts['zowe']['source']['props']['vcs.revision'][0]
+    }
+    else {
+        throw new Error(`Zowe release artifact vcs revision is null`)
+    }
+    if (!releaseArtifacts['zowe']['revision'].match(/^[0-9a-fA-F]{40}$/)) { // if it's a valid SHA-1 commit hash
+        throw new Error(`Cannot extract git revision from build \"${releaseArtifacts['zowe']['buildName']}/${releaseArtifacts['zowe']['buildNumber']}\"`)
+    }
+    logValidate(`>>[validate 4/16]>> Build ${releaseArtifacts['zowe']['buildName']}/${releaseArtifacts['zowe']['buildNumber']} commit hash is ${releaseArtifacts['zowe']['revision']}.`)
+} 
 else {
-	throw new Error(`Zowe release artifact vcs revision is null`)
+    logValidate(`>>[validate 4/16]>> SKIPPED`)
 }
-if (!releaseArtifacts['zowe']['revision'].match(/^[0-9a-fA-F]{40}$/)) { // if it's a valid SHA-1 commit hash
-	throw new Error(`Cannot extract git revision from build \"${releaseArtifacts['zowe']['buildName']}/${releaseArtifacts['zowe']['buildNumber']}\"`)
-}
-logValidate(`>>[validate 4/16]>> Build ${releaseArtifacts['zowe']['buildName']}/${releaseArtifacts['zowe']['buildNumber']} commit hash is ${releaseArtifacts['zowe']['revision']}.`)
 
 // get SMP/e build
 try {
@@ -116,17 +135,22 @@ try {
 		releaseArtifacts['smpe-zip']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-smpe-*.zip'].replace(/\*/g,'package-'+releaseVersion)
 		logValidate(`>>[validate 5/16]>> Found SMP/e build ${smpeZipSource['path']}.`)
 	}
-	try {
-		var smpePromoteTar = searchArtifact(
-			`${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['smpe-promote-*.tar']}`,
-			buildName,
-			buildNum
-		)
-		logValidate(`>>[validate 6/16]>> Found SMP/e promote tar ${smpePromoteTar['path']}.`)
-		core.exportVariable('SMPE_PTF_PROMOTE_TAR_PATH', smpePromoteTar['path'])
-  	} catch (e2) {
-		throw new Error(`no SMP/e promote tar found in the build`)
-	}
+    if (!nightly) {
+        try {
+            var smpePromoteTar = searchArtifact(
+                `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['smpe-promote-*.tar']}`,
+                buildName,
+                buildNum
+            )
+            logValidate(`>>[validate 6/16]>> Found SMP/e promote tar ${smpePromoteTar['path']}.`)
+            core.exportVariable('SMPE_PTF_PROMOTE_TAR_PATH', smpePromoteTar['path'])
+        } catch (e2) {
+            throw new Error(`no SMP/e promote tar found in the build`)
+        }
+    }
+    else {
+        logValidate(`>>[validate 6/16]>> SKIPPED`)
+    }
 } catch (e1) {
 	throw new Error(`>>> no SMP/e zip found in the build`)
 }
@@ -148,55 +172,62 @@ try {
 	throw new Error(`>>> no Docker image amd64 version found in the build.`)
 }
 
-// get Docker images with sources - amd64
-try {
-	var dockerImageSourcesAmd64 = searchArtifact(
-		`${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.sources.amd64-*.tar']}`,
-		buildName,
-		buildNum
-	)
-	if (dockerImageSourcesAmd64['path']) {
-		releaseArtifacts['docker-amd64-sources'] = {}
-		releaseArtifacts['docker-amd64-sources']['source'] = dockerImageSourcesAmd64
-		releaseArtifacts['docker-amd64-sources']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.sources.amd64-*.tar'].replace(/\*/g,releaseVersion)
-		logValidate(`>>[validate 8/16]>> Found Docker image amd64 sources version ${dockerImageSourcesAmd64['path']}.`)
-	}
-} catch (e1) {
-	throw new Error(`>>> no Docker image amd64 sources version found in the build.`)
-}
+if (!nightly) {
+    // get Docker images with sources - amd64
+    try {
+        var dockerImageSourcesAmd64 = searchArtifact(
+            `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.sources.amd64-*.tar']}`,
+            buildName,
+            buildNum
+        )
+        if (dockerImageSourcesAmd64['path']) {
+            releaseArtifacts['docker-amd64-sources'] = {}
+            releaseArtifacts['docker-amd64-sources']['source'] = dockerImageSourcesAmd64
+            releaseArtifacts['docker-amd64-sources']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.sources.amd64-*.tar'].replace(/\*/g,releaseVersion)
+            logValidate(`>>[validate 8/16]>> Found Docker image amd64 sources version ${dockerImageSourcesAmd64['path']}.`)
+        }
+    } catch (e1) {
+        throw new Error(`>>> no Docker image amd64 sources version found in the build.`)
+    }
 
-// get Docker images - s390x
-try {
-	var dockerImageS390x = searchArtifact(
-		`${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.s390x-*.tar']}`,
-		buildName,
-		buildNum
-	)
-	if (dockerImageS390x['path']) {
-		releaseArtifacts['docker-s390x'] = {}
-		releaseArtifacts['docker-s390x']['source'] = dockerImageS390x
-		releaseArtifacts['docker-s390x']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.s390x-*.tar'].replace(/\*/g,releaseVersion)
-		logValidate(`>>[validate 9/16]>> Found Docker image s390x version ${dockerImageS390x['path']}.`)
-	}
-} catch (e1) {
-	throw new Error(`>>> no Docker image s390x version found in the build.`)
-}
+    // get Docker images - s390x
+    try {
+        var dockerImageS390x = searchArtifact(
+            `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.s390x-*.tar']}`,
+            buildName,
+            buildNum
+        )
+        if (dockerImageS390x['path']) {
+            releaseArtifacts['docker-s390x'] = {}
+            releaseArtifacts['docker-s390x']['source'] = dockerImageS390x
+            releaseArtifacts['docker-s390x']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.s390x-*.tar'].replace(/\*/g,releaseVersion)
+            logValidate(`>>[validate 9/16]>> Found Docker image s390x version ${dockerImageS390x['path']}.`)
+        }
+    } catch (e1) {
+        throw new Error(`>>> no Docker image s390x version found in the build.`)
+    }
 
-// get Docker images with sources - s390x
-try {
-	var dockerImageSourcesS390x = searchArtifact(
-		`${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.sources.s390x-*.tar']}`,
-		buildName,
-		buildNum
-	)
-	if (dockerImageSourcesS390x['path']) {
-		releaseArtifacts['docker-s390x-sources'] = {}
-		releaseArtifacts['docker-s390x-sources']['source'] = dockerImageSourcesS390x
-		releaseArtifacts['docker-s390x-sources']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.sources.s390x-*.tar'].replace(/\*/g,releaseVersion)
-		logValidate(`>>[validate 10/16]>> Found Docker image s390x sources version ${dockerImageSourcesS390x['path']}.`)
-	}
-} catch (e1) {
-	throw new Error(`>>> no Docker image s390x sources version found in the build.`)
+    // get Docker images with sources - s390x
+    try {
+        var dockerImageSourcesS390x = searchArtifact(
+            `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.sources.s390x-*.tar']}`,
+            buildName,
+            buildNum
+        )
+        if (dockerImageSourcesS390x['path']) {
+            releaseArtifacts['docker-s390x-sources'] = {}
+            releaseArtifacts['docker-s390x-sources']['source'] = dockerImageSourcesS390x
+            releaseArtifacts['docker-s390x-sources']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.sources.s390x-*.tar'].replace(/\*/g,releaseVersion)
+            logValidate(`>>[validate 10/16]>> Found Docker image s390x sources version ${dockerImageSourcesS390x['path']}.`)
+        }
+    } catch (e1) {
+        throw new Error(`>>> no Docker image s390x sources version found in the build.`)
+    }
+}
+else {
+    logValidate(`>>[validate 8/16]>> SKIPPED`)
+    logValidate(`>>[validate 9/16]>> SKIPPED`)
+    logValidate(`>>[validate 10/16]>> SKIPPED`)
 }
 
 // get containerization
@@ -238,37 +269,44 @@ if (cliPlugins['path']) {
 	logValidate(`>>[validate 13/16]>> Found Zowe CLI Plugins ${releaseArtifacts['cli-plugins']['source']['path']}.`)
 }
 
-// get CLI python sdk build artifacts
-var cliPythonSDK = searchArtifact(
-	`${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-python-sdk-1*.zip']}`
-)
-if (cliPythonSDK['path']) {
-	releaseArtifacts['cli-python-sdk'] = {}
-	releaseArtifacts['cli-python-sdk']['source'] = cliPythonSDK
-	releaseArtifacts['cli-python-sdk']['target'] = zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-python-sdk-1*.zip'].replace(/1\*/g,releaseVersion)
-	logValidate(`>>[validate 14/16]>> Found Zowe CLI Python SDK ${releaseArtifacts['cli-python-sdk']['source']['path']}.`)
-}
+if (!nightly) {
+    // get CLI python sdk build artifacts
+    var cliPythonSDK = searchArtifact(
+        `${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-python-sdk-1*.zip']}`
+    )
+    if (cliPythonSDK['path']) {
+        releaseArtifacts['cli-python-sdk'] = {}
+        releaseArtifacts['cli-python-sdk']['source'] = cliPythonSDK
+        releaseArtifacts['cli-python-sdk']['target'] = zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-python-sdk-1*.zip'].replace(/1\*/g,releaseVersion)
+        logValidate(`>>[validate 14/16]>> Found Zowe CLI Python SDK ${releaseArtifacts['cli-python-sdk']['source']['path']}.`)
+    }
 
-// get CLI nodejs sdk build artifacts
-var cliNodejsSDK = searchArtifact(
-	`${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-1*.zip']}`
-)
-if (cliNodejsSDK['path']) {
-	releaseArtifacts['cli-nodejs-sdk'] = {}
-	releaseArtifacts['cli-nodejs-sdk']['source'] = cliNodejsSDK
-	releaseArtifacts['cli-nodejs-sdk']['target'] = zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-1*.zip'].replace(/1\*/g,releaseVersion)
-	logValidate(`>>[validate 15/16]>> Found Zowe CLI NodeJS SDK ${releaseArtifacts['cli-nodejs-sdk']['source']['path']}.`)
-}
+    // get CLI nodejs sdk build artifacts
+    var cliNodejsSDK = searchArtifact(
+        `${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-1*.zip']}`
+    )
+    if (cliNodejsSDK['path']) {
+        releaseArtifacts['cli-nodejs-sdk'] = {}
+        releaseArtifacts['cli-nodejs-sdk']['source'] = cliNodejsSDK
+        releaseArtifacts['cli-nodejs-sdk']['target'] = zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-1*.zip'].replace(/1\*/g,releaseVersion)
+        logValidate(`>>[validate 15/16]>> Found Zowe CLI NodeJS SDK ${releaseArtifacts['cli-nodejs-sdk']['source']['path']}.`)
+    }
 
-// get CLI nodejs sdk typedoc build artifacts
-var cliNodejsSDKTypedoc = searchArtifact(
-	`${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-typedoc-1*.zip']}`
-)
-if (cliNodejsSDKTypedoc['path']) {
-	releaseArtifacts['cli-nodejs-sdk-typedoc'] = {}
-	releaseArtifacts['cli-nodejs-sdk-typedoc']['source'] = cliNodejsSDKTypedoc
-	releaseArtifacts['cli-nodejs-sdk-typedoc']['target'] = zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-typedoc-1*.zip'].replace(/1\*/g,releaseVersion)
-	logValidate(`>>[validate 16/16]>> Found Zowe CLI NodeJS Typedoc SDK ${releaseArtifacts['cli-nodejs-sdk-typedoc']['source']['path']}.`)
+    // get CLI nodejs sdk typedoc build artifacts
+    var cliNodejsSDKTypedoc = searchArtifact(
+        `${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-typedoc-1*.zip']}`
+    )
+    if (cliNodejsSDKTypedoc['path']) {
+        releaseArtifacts['cli-nodejs-sdk-typedoc'] = {}
+        releaseArtifacts['cli-nodejs-sdk-typedoc']['source'] = cliNodejsSDKTypedoc
+        releaseArtifacts['cli-nodejs-sdk-typedoc']['target'] = zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-typedoc-1*.zip'].replace(/1\*/g,releaseVersion)
+        logValidate(`>>[validate 16/16]>> Found Zowe CLI NodeJS Typedoc SDK ${releaseArtifacts['cli-nodejs-sdk-typedoc']['source']['path']}.`)
+    }
+}
+else {
+    logValidate(`>>[validate 14/16]>> SKIPPED`)
+    logValidate(`>>[validate 15/16]>> SKIPPED`)
+    logValidate(`>>[validate 16/16]>> SKIPPED`)
 }
 
 // write to file and print content, this file will be used in promote step in workflow
@@ -309,7 +347,7 @@ fs.writeFileSync(promoteJsonFileNameFull, JSON.stringify(releaseArtifacts, null,
 //   }
 function searchArtifact(pattern, buildName, buildNum) {
 	if ((buildName == '' && buildNum != '') || (buildName != '' && buildNum == '')) {
-		throw new Error ('Function searchArtifact must have neither buildName or buildNum, or both')
+		throw new Error ('Function searchArtifact must have neither buildName or buildNum, or have both')
 	}
 	var cmd = `jfrog rt search`
 	if (buildName && buildNum) {
