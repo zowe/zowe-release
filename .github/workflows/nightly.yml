@@ -1,10 +1,27 @@
 name: Zowe Nightly Pipeline
 on:
   workflow_dispatch:
+    inputs:
+      skip-build:
+        description: Skip build?
+        type: boolean
+        required: false
+        default: 'false'
+      skip-test:
+        description: Skip test?
+        type: boolean
+        required: false
+        default: 'false'
+      skip-release:
+        description: Skip release?
+        type: boolean
+        required: false
+        default: 'false'
 
 jobs:
   call-build-pipeline:
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.skip-build == 'false' }}
     steps:
       - name: 'Call build workflow'
         uses: zowe-actions/shared-actions/workflow-remote-call-wait@main
@@ -32,6 +49,7 @@ jobs:
       
   call-test-pipeline:
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.skip-test == 'false' }}
     needs: call-build-pipeline
     steps:
       - name: 'Call test workflow'
@@ -57,6 +75,7 @@ jobs:
     
   call-release-pipeline:
     runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.skip-release == 'false' }}
     needs: call-test-pipeline
     steps:
       - name: 'Setup jFrog CLI'
