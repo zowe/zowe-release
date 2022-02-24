@@ -10,6 +10,9 @@ inputs:
   build-num:
     description: zowe build number
     required: true
+outputs:
+  slack-message:
+    description: the message to put into slack
   
 runs:
   using: 'node12'
