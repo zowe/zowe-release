@@ -36,8 +36,8 @@ jobs:
           repo: zowe-install-packaging
           workflow-filename: build-packaging.yml
           branch-name: staging
-          poll-frequency: 2
-          #inputs-json-string: '{"BUILD_SMPE":"true","BUILD_DOCKER":"true","BUILD_KUBERNETES":"true"}' TODO
+          poll-frequency: 3
+          inputs-json-string: '{"BUILD_SMPE":"true","BUILD_DOCKER":"true","BUILD_KUBERNETES":"true"}'
 
       - name: '[Build 2] Report build failure if applied'
         if: ${{ steps.call-build.outputs.workflow-run-conclusion != 'success' }}
