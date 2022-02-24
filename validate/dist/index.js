@@ -7451,6 +7451,7 @@ utils.mandatoryInputCheck(buildNum, 'build-num')
 utils.mandatoryInputCheck(releaseVersion, 'release-version')
 
 var nightly = false
+var nightly_v2 = false
 
 console.log(`Checking if ${releaseVersion} is a valid semantic version ...`)
 if (releaseVersion.includes('nightly')) {
@@ -7475,6 +7476,9 @@ else {
     else {
         console.log(`>>>> Version ${releaseVersion} is NOT considered as a FORMAL RELEASE.`)
     }
+}
+if (nightly && releaseVersion != 'nightly'){
+    nightly_v2 = true
 }
 
 // init
@@ -7589,25 +7593,30 @@ try {
 }
 
 // get Docker images - amd64
-try {
-	var dockerImageAmd64 = searchArtifact(
-		`${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.amd64-*.tar']}`,
-		buildName,
-		buildNum
-	)
-	if (dockerImageAmd64['path']) {
-		releaseArtifacts['docker-amd64'] = {}
-		releaseArtifacts['docker-amd64']['source'] = dockerImageAmd64
-        if (nightly) {
-            releaseArtifacts['docker-amd64']['target'] = dockerImageAmd64['path'].split("/").pop()
+if (nightly && !nightly_v2) {
+    try {
+        var dockerImageAmd64 = searchArtifact(
+            `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.amd64-*.tar']}`,
+            buildName,
+            buildNum
+        )
+        if (dockerImageAmd64['path']) {
+            releaseArtifacts['docker-amd64'] = {}
+            releaseArtifacts['docker-amd64']['source'] = dockerImageAmd64
+            if (nightly) {
+                releaseArtifacts['docker-amd64']['target'] = dockerImageAmd64['path'].split("/").pop()
+            }
+            else {
+                releaseArtifacts['docker-amd64']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.amd64-*.tar'].replace(/\*/g,releaseVersion)
+            }
+            logValidate(`>>[validate 7/16]>> Found Docker image amd64 version ${dockerImageAmd64['path']}.`)
         }
-        else {
-		    releaseArtifacts['docker-amd64']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.amd64-*.tar'].replace(/\*/g,releaseVersion)
-        }
-        logValidate(`>>[validate 7/16]>> Found Docker image amd64 version ${dockerImageAmd64['path']}.`)
-	}
-} catch (e1) {
-	throw new Error(`>>> no Docker image amd64 version found in the build.`)
+    } catch (e1) {
+        throw new Error(`>>> no Docker image amd64 version found in the build.`)
+    }
+}
+else {
+    logValidate(`>>[validate 7/16]>> SKIPPED `)
 }
 
 if (!nightly) {
