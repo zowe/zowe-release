@@ -1,9 +1,5 @@
 name: Zowe Release
-on:
-  # workflow_call: TODO
-  #   inputs:    
-  #   secrets:
-      
+on:   
   workflow_dispatch:
     inputs:
       zowe-artifact-dir:

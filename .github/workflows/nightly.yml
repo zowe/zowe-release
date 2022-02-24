@@ -2,11 +2,6 @@ name: Zowe Nightly Pipeline
 on:
   workflow_dispatch:
     inputs:
-      skip-build:
-        description: Skip build?
-        type: boolean
-        required: false
-        default: 'false'
       skip-test:
         description: Skip test?
         type: boolean
@@ -19,11 +14,17 @@ on:
         default: 'false'
 
 jobs:
-  call-build-pipeline:
+  run-nightly-pipeline:
     runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.skip-build == 'false' }}
     steps:
-      - name: 'Call build workflow'
+      - name: 'Setup jFrog CLI'
+        uses: jfrog/setup-jfrog-cli@v2
+        env:
+          JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_TOKEN }}
+
+
+
+      - name: '[Build 1] Call build workflow'
         uses: zowe-actions/shared-actions/workflow-remote-call-wait@main
         id: call-build
         with:
@@ -33,27 +34,29 @@ jobs:
           workflow-filename: build-packaging.yml
           branch-name: staging
           poll-frequency: 2
-          inputs-json-string: '{"BUILD_SMPE":"true","BUILD_DOCKER":"true","BUILD_KUBERNETES":"true"}'
-        # env:
-        #   DEBUG: 'workflow-remote-call-wait'
+          #inputs-json-string: '{"BUILD_SMPE":"true","BUILD_DOCKER":"true","BUILD_KUBERNETES":"true"}'
 
-      - name: 'Report build failure if applied'
+      - name: '[Build 2] Report build failure if applied'
         if: ${{ steps.call-build.outputs.workflow-run-conclusion != 'success' }}
         uses: actions/github-script@v5
         with:
           script: |
             core.setFailed('Build workflow ${{ steps.call-build.outputs.workflow-run-num }} is not successful')
-    outputs:
-      build-run-num: ${{ steps.call-build.outputs.workflow-run-num }}
-    
-      
-  call-test-pipeline:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.skip-test == 'false' }}
-    needs: call-build-pipeline
-    steps:
-      - name: 'Call test workflow'
+
+      - name: '[Build 3] Get version of staging branch'
+        if: always()
+        run: |
+          echo ZOWE_ART_DIR=$(jfrog rt search \
+          --build="zowe-install-packaging/staging/${{ steps.call-build.outputs.workflow-run-num }}" \
+          "libs-snapshot-local/org/zowe/*/zowe*pax" | jq -r ".[].path" | sed "s#libs-snapshot-local/org/zowe/##g" | cut -f1 -d"/") >> $GITHUB_ENV
+
+          echo STAGING_VER=$(echo $ZOWE_ART_DIR | cut -f1 -d"-") >> $GITHUB_ENV
+
+
+
+      - name: '[Test 1] Call test workflow'
         uses: zowe-actions/shared-actions/workflow-remote-call-wait@main
+        if: ${{ github.event.inputs.skip-test == 'false' }}
         id: call-test
         with:
           github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
@@ -61,34 +64,21 @@ jobs:
           repo: zowe-install-packaging
           workflow-filename: cicd-test.yml
           branch-name: staging
-          poll-frequency: 3
-          inputs-json-string: '{"custom-zowe-artifactory-pattern-or-build-number":"${{ needs.call-build-pipeline.outputs.build-run-num }}"}'
+          poll-frequency: 10
+          inputs-json-string: '{"install-test":"Zowe Nightly Tests","custom-zowe-artifactory-pattern-or-build-number":"${{ steps.call-build.outputs.workflow-run-num }}"}'
 
-      - name: 'Report test failure if applied'
-        if: ${{ steps.call-test.outputs.workflow-run-conclusion != 'success' }}
+      - name: '[Test 2] Report test failure if applied'
+        if: ${{ steps.call-test.outputs.workflow-run-conclusion != 'success' && github.event.inputs.skip-test == 'false' }}
         uses: actions/github-script@v5
         with:
           script: |
             core.setFailed('Test workflow ${{ steps.call-test.outputs.workflow-run-num }} is not successful')
-    
-  call-release-pipeline:
-    runs-on: ubuntu-latest
-    if: ${{ github.event.inputs.skip-release == 'false' }}
-    needs: call-test-pipeline
-    steps:
-      - name: 'Setup jFrog CLI'
-        uses: jfrog/setup-jfrog-cli@v2
-        env:
-          JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_TOKEN }}
 
-      - name: 'Get version of staging branch'
-        run: |
-          echo ZOWE_ART_DIR=$(jfrog rt search \
-          --build="zowe-install-packaging/staging/${{ needs.call-build-pipeline.outputs.build-run-num }}" \
-          "libs-snapshot-local/org/zowe/*/zowe*pax" | jq -r ".[].path" | sed "s#libs-snapshot-local/org/zowe/##g" | cut -f1 -d"/")  >> $GITHUB_ENV
 
-      - name: 'Call release workflow'
+
+      - name: '[Release 1] Call release workflow'
         uses: zowe-actions/shared-actions/workflow-remote-call-wait@main
+        if: ${{ github.event.inputs.skip-release == 'false' }}
         id: call-release
         with:
           github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
@@ -97,11 +87,71 @@ jobs:
           workflow-filename: release.yml
           branch-name: main
           poll-frequency: 1
-          inputs-json-string: '{"zowe-artifact-dir":"${{ env.ZOWE_ART_DIR }}","zowe-build-name":"zowe-install-packaging/staging","zowe-build-number":"${{ needs.call-build-pipeline.outputs.build-run-num }}","zowe-release-version":"nightly"}'
+          inputs-json-string: '{"zowe-artifact-dir":"${{ env.ZOWE_ART_DIR }}","zowe-build-name":"zowe-install-packaging/staging","zowe-build-number":"${{ steps.call-build.outputs.workflow-run-num }}","zowe-release-version":"nightly"}'
 
-      - name: 'Report release failure if applied'
-        if: ${{ steps.call-release.outputs.workflow-run-conclusion != 'success' }}
+      - name: '[Release 2] Report release failure if applied'
+        if: ${{ steps.call-release.outputs.workflow-run-conclusion != 'success' && github.event.inputs.skip-release == 'false' }}
         uses: actions/github-script@v5
         with:
           script: |
             core.setFailed('Release workflow ${{ steps.call-release.outputs.workflow-run-num }} is not successful')
+
+
+
+      - name: '[Message 1] prepare slack message body'
+        if: always()
+        run: | 
+          echo TODAYS_DATE=$(date +'%m/%d/%Y') >> $GITHUB_ENV
+
+      - name: '[Message 2] Send slack message indicating'
+        uses: slackapi/slack-github-action@v1.18.0
+        if: always()
+        with:
+          channel-id: ${{ secrets.ZOWE_BUILD_CHANNEL_ID }}
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Zowe Nightly Pipeline Daily Report"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Version:*\n ${{ env.STAGING_VER }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Date:*\n ${{ env.TODAYS_DATE }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Build* \n • Result: *${{ steps.call-build.outputs.workflow-run-conclusion }}* \n • Workflow Run URL: ${{ steps.call-build.outputs.workflow-run-html-url }}"
+                  }
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Test* \n • Result: *${{ steps.call-test.outputs.workflow-run-conclusion || 'n/a' }}* \n • Workflow Run URL: ${{ steps.call-test.outputs.workflow-run-html-url || 'n/a' }}"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
