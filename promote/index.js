@@ -28,6 +28,10 @@ utils.mandatoryInputCheck(promoteJsonFileNameFull, 'promote-json-file-name-full'
 utils.mandatoryInputCheck(releaseVersion, 'release-version')
 
 // init
+var nightly = false
+if (releaseVersion.includes('nightly')) {
+    nightly = true
+}
 var zoweReleaseJsonFile = process.env.ZOWE_RELEASE_JSON
 var zoweReleaseJsonObject = JSON.parse(fs.readFileSync(projectRootPath + '/' + zoweReleaseJsonFile))
 
@@ -46,6 +50,17 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
     var sourceFullPath = `${properties['source']['path']}`
     var targetFullPath = `${targetPath}/${properties['target']}`
 
+    //sometimes error occured on CLI nightly pipeline, so a particular night CLI doesn't have nightly build
+    // thus we do a pre-check here for CLI
+    if (targetFullPath.includes('cli') && nightly) {
+        var preCheckResultJson = JSON.parse(utils.sh(`jfrog rt search ${targetFullPath} | jq -r '.[]'`))
+        if (preCheckResultJson != '') {
+            // found
+            console.warn('Latest CLI artifacts were promoted the night before, skipping')
+            continue
+        }
+    }
+    
     console.log(`Promoting artifact ${component}
 - from              :  ${sourceFullPath}
 - to                :  ${targetFullPath}
