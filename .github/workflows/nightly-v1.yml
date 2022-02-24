@@ -48,28 +48,6 @@ jobs:
 
       #============================================================================
 
-      - name: '[Test 1] Call test workflow'
-        uses: zowe-actions/shared-actions/workflow-remote-call-wait@main
-        if: ${{ github.event.inputs.skip-test == 'false' }}
-        id: call-test
-        with:
-          github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
-          owner: zowe
-          repo: zowe-install-packaging
-          workflow-filename: cicd-test.yml
-          branch-name: staging
-          poll-frequency: 10
-          inputs-json-string: '{"install-test":"Zowe Nightly Tests","custom-zowe-artifactory-pattern-or-build-number":"${{ steps.call-build.outputs.workflow-run-num }}"}'
-
-      - name: '[Test 2] Report test failure if applied'
-        if: ${{ steps.call-test.outputs.workflow-run-conclusion != 'success' && github.event.inputs.skip-test == 'false' }}
-        uses: actions/github-script@v5
-        with:
-          script: |
-            core.setFailed('Test workflow ${{ steps.call-test.outputs.workflow-run-num }} is not successful')
-
-      #============================================================================
-
       - name: '[Promote:Prep 1] Get zowe version of the build triggered from this nightly pipeline'
         if: ${{ github.event.inputs.skip-promote == 'false' }}
         run: |
@@ -143,6 +121,30 @@ jobs:
           release-artifact-download-file: ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }}
           release-version: nightly
           build-num: ${{ steps.call-build.outputs.workflow-run-num }}
+
+      #============================================================================
+
+      - name: '[Test 1] Call test workflow'
+        uses: zowe-actions/shared-actions/workflow-remote-call-wait@main
+        if: ${{ github.event.inputs.skip-test == 'false' }}
+        id: call-test
+        with:
+          github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
+          owner: zowe
+          repo: zowe-install-packaging
+          workflow-filename: cicd-test.yml
+          branch-name: staging
+          poll-frequency: 10
+          inputs-json-string: '{"install-test":"Zowe Nightly Tests","custom-zowe-artifactory-pattern-or-build-number":"${{ steps.call-build.outputs.workflow-run-num }}"}'
+
+      - name: '[Test 2] Report test failure if applied'
+        if: ${{ steps.call-test.outputs.workflow-run-conclusion != 'success' && github.event.inputs.skip-test == 'false' }}
+        uses: actions/github-script@v5
+        with:
+          script: |
+            core.setFailed('Test workflow ${{ steps.call-test.outputs.workflow-run-num }} is not successful')
+
+      #============================================================================
 
       - name: '[Message 1] prepare slack message body'
         if: always()
