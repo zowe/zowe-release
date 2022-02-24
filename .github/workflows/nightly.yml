@@ -43,15 +43,6 @@ jobs:
           script: |
             core.setFailed('Build workflow ${{ steps.call-build.outputs.workflow-run-num }} is not successful')
 
-      - name: '[Build 3] Get version of staging branch'
-        if: always()
-        run: |
-          echo ZOWE_ART_DIR=$(jfrog rt search \
-          --build="zowe-install-packaging/staging/${{ steps.call-build.outputs.workflow-run-num }}" \
-          "libs-snapshot-local/org/zowe/*/zowe*pax" | jq -r ".[].path" | sed "s#libs-snapshot-local/org/zowe/##g" | cut -f1 -d"/") >> $GITHUB_ENV
-
-          echo STAGING_VER=$(echo $ZOWE_ART_DIR | cut -f1 -d"-") >> $GITHUB_ENV
-
 
 
       - name: '[Test 1] Call test workflow'
@@ -76,7 +67,14 @@ jobs:
 
 
 
-      - name: '[Release 1] Call release workflow'
+      - name: '[Release 1] Get zowe version of the build triggered from this nightly pipeline'
+        if: ${{ github.event.inputs.skip-release == 'false' }}
+        run: |
+          echo ZOWE_ART_DIR=$(jfrog rt search \
+          --build="zowe-install-packaging/staging/${{ steps.call-build.outputs.workflow-run-num }}" \
+          "libs-snapshot-local/org/zowe/*/zowe*pax" | jq -r ".[].path" | sed "s#libs-snapshot-local/org/zowe/##g" | cut -f1 -d"/") >> $GITHUB_ENV
+
+      - name: '[Release 2] Call release workflow'
         uses: zowe-actions/shared-actions/workflow-remote-call-wait@main
         if: ${{ github.event.inputs.skip-release == 'false' }}
         id: call-release
@@ -89,7 +87,7 @@ jobs:
           poll-frequency: 1
           inputs-json-string: '{"zowe-artifact-dir":"${{ env.ZOWE_ART_DIR }}","zowe-build-name":"zowe-install-packaging/staging","zowe-build-number":"${{ steps.call-build.outputs.workflow-run-num }}","zowe-release-version":"nightly"}'
 
-      - name: '[Release 2] Report release failure if applied'
+      - name: '[Release 3] Report release failure if applied'
         if: ${{ steps.call-release.outputs.workflow-run-conclusion != 'success' && github.event.inputs.skip-release == 'false' }}
         uses: actions/github-script@v5
         with:
@@ -102,6 +100,15 @@ jobs:
         if: always()
         run: | 
           echo TODAYS_DATE=$(date +'%m/%d/%Y') >> $GITHUB_ENV
+
+          echo STAGING_VER=$(jfrog rt search \
+          --sort-by=created --sort-order=desc --limit=1 \
+          "libs-snapshot-local/org/zowe/*/zowe*pax" \
+          | jq -r ".[].path" \
+          | sed "s#libs-snapshot-local/org/zowe/##g" \
+          | cut -f1 -d"/" \
+          | cut -f1 -d"-") \
+          >> $GITHUB_ENV
 
       - name: '[Message 2] Send slack message indicating'
         uses: slackapi/slack-github-action@v1.18.0
