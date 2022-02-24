@@ -113,6 +113,8 @@ jobs:
       - name: '[Message 2] Send slack message indicating'
         uses: slackapi/slack-github-action@v1.18.0
         if: always()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         with:
           channel-id: ${{ secrets.ZOWE_BUILD_CHANNEL_ID }}
           payload: |
@@ -145,8 +147,33 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Build* \n • Result: *${{ steps.call-build.outputs.workflow-run-conclusion }}* \n • Workflow Run URL: ${{ steps.call-build.outputs.workflow-run-html-url }}"
+                    "text": "*Build*"
                   }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "plain_text",
+                      "text": "• Result:",
+                      "emoji": true
+                    },
+                    {
+                      "type": "plain_text",
+                      "text": "${{ steps.call-build.outputs.workflow-run-conclusion }}",
+                      "emoji": true
+                    },
+                    {
+                      "type": "plain_text",
+                      "text": "• Workflow Run URL:",
+                      "emoji": true
+                    },
+                    {
+                      "type": "plain_text",
+                      "text": "${{ steps.call-build.outputs.workflow-run-html-url }}",
+                      "emoji": true
+                    }
+                  ]
                 },
                 {
                   "type": "divider"
@@ -155,10 +182,33 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Test* \n • Result: *${{ steps.call-test.outputs.workflow-run-conclusion || 'n/a' }}* \n • Workflow Run URL: ${{ steps.call-test.outputs.workflow-run-html-url || 'n/a' }}"
+                    "text": "*Test*"
                   }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "plain_text",
+                      "text": "• Result:",
+                      "emoji": true
+                    },
+                    {
+                      "type": "plain_text",
+                      "text": "${{ steps.call-test.outputs.workflow-run-conclusion || 'skipped' }}",
+                      "emoji": true
+                    },
+                    {
+                      "type": "plain_text",
+                      "text": "• Workflow Run URL:",
+                      "emoji": true
+                    },
+                    {
+                      "type": "plain_text",
+                      "text": "${{ steps.call-test.outputs.workflow-run-html-url || 'n/a' }}",
+                      "emoji": true
+                    }
+                  ]
                 }
               ]
             }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
