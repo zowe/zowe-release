@@ -2,13 +2,13 @@ name: Zowe Nightly Pipeline for v1
 on:
   workflow_dispatch:
     inputs:
-      skip-test:
-        description: Skip test?
+      skip-promote:
+        description: Skip release?
         type: boolean
         required: false
         default: 'false'
-      skip-promote:
-        description: Skip release?
+      skip-test:
+        description: Skip test?
         type: boolean
         required: false
         default: 'false'
