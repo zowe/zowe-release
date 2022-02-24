@@ -262,7 +262,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ steps.message.outputs.slack-message }}"
+                    "text": "${{ steps.message.outputs.slack-message || 'n/a' }}"
                   }
                 }
               ]
