@@ -112,7 +112,7 @@ jobs:
         if: ${{ github.event.inputs.skip-promote == 'false' }}
         run: cat ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }}
 
-      - name: '[Promote:Message] Release result message (DevOps please click here to copy and announce)'
+      - name: '[Promote:Message] Make slack message'
         if: ${{ github.event.inputs.skip-promote == 'false' }}
         timeout-minutes: 2
         id: message
