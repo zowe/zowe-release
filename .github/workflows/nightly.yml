@@ -38,7 +38,7 @@ jobs:
         #   DEBUG: 'workflow-remote-call-wait'
 
       - name: 'Report build failure if applied'
-        if: ${{ steps.call-build.outputs.workflow-run-conclusion }} != "success"
+        if: ${{ steps.call-build.outputs.workflow-run-conclusion != 'success' }}
         uses: actions/github-script@v5
         with:
           script: |
@@ -65,7 +65,7 @@ jobs:
           inputs-json-string: '{"custom-zowe-artifactory-pattern-or-build-number":"${{ needs.call-build-pipeline.outputs.build-run-num }}"}'
 
       - name: 'Report test failure if applied'
-        if: ${{ steps.call-test.outputs.workflow-run-conclusion }} != "success"
+        if: ${{ steps.call-test.outputs.workflow-run-conclusion != 'success' }}
         uses: actions/github-script@v5
         with:
           script: |
@@ -100,7 +100,7 @@ jobs:
           inputs-json-string: '{"zowe-artifact-dir":"${{ env.ZOWE_ART_DIR }}","zowe-build-name":"zowe-install-packaging/staging","zowe-build-number":"${{ needs.call-build-pipeline.outputs.build-run-num }}","zowe-release-version":"nightly"}'
 
       - name: 'Report release failure if applied'
-        if: ${{ steps.call-release.outputs.workflow-run-conclusion }} != "success"
+        if: ${{ steps.call-release.outputs.workflow-run-conclusion != 'success' }}
         uses: actions/github-script@v5
         with:
           script: |
