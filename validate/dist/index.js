@@ -7694,12 +7694,12 @@ try {
 var cliPackages
 if (nightly) {
     cliPackages = searchArtifact(
-        `${zoweReleaseJsonObject['zowe-cli']['nightlyFrom']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-1*.zip']}`
+        `${zoweReleaseJsonObject['zowe-cli']['nightlyFrom']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-*.zip']}`
     )
 }
 else {
     cliPackages = searchArtifact(
-        `${zoweReleaseJsonObject['zowe-cli']['from']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-1*.zip']}`
+        `${zoweReleaseJsonObject['zowe-cli']['from']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-*.zip']}`
     )
 }
 if (cliPackages['path']) {
@@ -7709,7 +7709,7 @@ if (cliPackages['path']) {
         releaseArtifacts['cli']['target'] = 'cli/' + cliPackages['path'].split('/').pop() // prefix cli is to put cli artifacts copied to org/zowe/nightly/cli/*
     }
     else {
-	    releaseArtifacts['cli']['target'] = zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-1*.zip'].replace(/1\*/g,releaseVersion)
+	    releaseArtifacts['cli']['target'] = zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-*.zip'].replace(/1\*/g,releaseVersion)
     }
     logValidate(`>>[validate 12/16]>> Found Zowe CLI build ${releaseArtifacts['cli']['source']['path']}.`)
 }
@@ -7718,12 +7718,12 @@ if (cliPackages['path']) {
 var cliPlugins
 if (nightly) {
     cliPlugins = searchArtifact(
-	    `${zoweReleaseJsonObject['zowe-cli']['nightlyFrom']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-1*.zip']}`
+	    `${zoweReleaseJsonObject['zowe-cli']['nightlyFrom']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-*.zip']}`
     )
 }
 else {
     cliPlugins = searchArtifact(
-	    `${zoweReleaseJsonObject['zowe-cli']['from']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-1*.zip']}`
+	    `${zoweReleaseJsonObject['zowe-cli']['from']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-*.zip']}`
     )
 }
 if (cliPlugins['path']) {
@@ -7733,7 +7733,7 @@ if (cliPlugins['path']) {
         releaseArtifacts['cli-plugins']['target'] = 'cli/' + cliPlugins['path'].split('/').pop()     // prefix cli is to put cli artifacts copied to org/zowe/nightly/cli/*
     }
     else {
-        releaseArtifacts['cli-plugins']['target'] = zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-1*.zip'].replace(/1\*/g,releaseVersion)
+        releaseArtifacts['cli-plugins']['target'] = zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-*.zip'].replace(/1\*/g,releaseVersion)
     }
 	logValidate(`>>[validate 13/16]>> Found Zowe CLI Plugins ${releaseArtifacts['cli-plugins']['source']['path']}.`)
 }
@@ -7741,34 +7741,34 @@ if (cliPlugins['path']) {
 if (!nightly) {
     // get CLI python sdk build artifacts
     var cliPythonSDK = searchArtifact(
-        `${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-python-sdk-1*.zip']}`
+        `${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-python-sdk-*.zip']}`
     )
     if (cliPythonSDK['path']) {
         releaseArtifacts['cli-python-sdk'] = {}
         releaseArtifacts['cli-python-sdk']['source'] = cliPythonSDK
-        releaseArtifacts['cli-python-sdk']['target'] = zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-python-sdk-1*.zip'].replace(/1\*/g,releaseVersion)
+        releaseArtifacts['cli-python-sdk']['target'] = zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-python-sdk-*.zip'].replace(/1\*/g,releaseVersion)
         logValidate(`>>[validate 14/16]>> Found Zowe CLI Python SDK ${releaseArtifacts['cli-python-sdk']['source']['path']}.`)
     }
 
     // get CLI nodejs sdk build artifacts
     var cliNodejsSDK = searchArtifact(
-        `${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-1*.zip']}`
+        `${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-*.zip']}`
     )
     if (cliNodejsSDK['path']) {
         releaseArtifacts['cli-nodejs-sdk'] = {}
         releaseArtifacts['cli-nodejs-sdk']['source'] = cliNodejsSDK
-        releaseArtifacts['cli-nodejs-sdk']['target'] = zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-1*.zip'].replace(/1\*/g,releaseVersion)
+        releaseArtifacts['cli-nodejs-sdk']['target'] = zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-*.zip'].replace(/1\*/g,releaseVersion)
         logValidate(`>>[validate 15/16]>> Found Zowe CLI NodeJS SDK ${releaseArtifacts['cli-nodejs-sdk']['source']['path']}.`)
     }
 
     // get CLI nodejs sdk typedoc build artifacts
     var cliNodejsSDKTypedoc = searchArtifact(
-        `${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-typedoc-1*.zip']}`
+        `${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-typedoc-*.zip']}`
     )
     if (cliNodejsSDKTypedoc['path']) {
         releaseArtifacts['cli-nodejs-sdk-typedoc'] = {}
         releaseArtifacts['cli-nodejs-sdk-typedoc']['source'] = cliNodejsSDKTypedoc
-        releaseArtifacts['cli-nodejs-sdk-typedoc']['target'] = zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-typedoc-1*.zip'].replace(/1\*/g,releaseVersion)
+        releaseArtifacts['cli-nodejs-sdk-typedoc']['target'] = zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-typedoc-*.zip'].replace(/1\*/g,releaseVersion)
         logValidate(`>>[validate 16/16]>> Found Zowe CLI NodeJS Typedoc SDK ${releaseArtifacts['cli-nodejs-sdk-typedoc']['source']['path']}.`)
     }
 }
