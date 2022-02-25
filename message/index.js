@@ -67,6 +67,6 @@ releaseArtifactJsonObject.files.forEach(function(obj) {
 message.push(`
 *************************************************************************************************`)
 console.log(message.join('\n'))
-core.setOutput('slack-message',slackMessage.join('\n'))
+core.setOutput('slack-message',slackMessage.join('\\n'))
 
 
