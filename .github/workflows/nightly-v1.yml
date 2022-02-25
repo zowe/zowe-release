@@ -195,17 +195,16 @@ jobs:
                 },
                 {
                   "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*Build*"
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "Result: ${{ steps.call-build.outputs.workflow-run-conclusion }}"
-                  }
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Build*"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "Result: ${{ steps.call-build.outputs.workflow-run-conclusion }}"
+                    }
+                  ]
                 },
                 {
                   "type": "actions",
@@ -225,17 +224,16 @@ jobs:
                 },
                 {
                   "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*Test*"
-                  }
-                },
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "Result: ${{ steps.call-test.outputs.workflow-run-conclusion || 'skipped' }}"
-                  }
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Test*"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "Result: ${{ steps.call-test.outputs.workflow-run-conclusion || 'skipped' }}"
+                    }
+                  ]
                 },
                 {
                   "type": "actions",
