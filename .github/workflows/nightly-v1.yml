@@ -1,8 +1,7 @@
 name: Zowe Nightly Pipeline for v1
 on:
   schedule:
-    - cron: '15 5 * * *'
-    - cron: '*/5 * * * *'
+    - cron: '13 5 * * *'
   workflow_dispatch:
     inputs:
       skip-promote:
