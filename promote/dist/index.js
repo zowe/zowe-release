@@ -14268,8 +14268,8 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
     //sometimes error occured on CLI nightly pipeline, so a particular night CLI doesn't have nightly build
     // thus we do a pre-check here for CLI
     if (targetFullPath.includes('cli') && nightly) {
-        var preCheckResultJson = JSON.parse(utils.sh(`jfrog rt search ${targetFullPath} | jq -r '.[]'`))
-        if (preCheckResultJson != '') {
+        var preCheckOut = utils.sh(`jfrog rt search ${targetFullPath} | jq -r '.[]'`)
+        if (preCheckOut != '') {
             // found
             console.warn('Latest CLI artifacts were promoted the night before, skipping')
             continue
