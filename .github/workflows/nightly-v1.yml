@@ -1,5 +1,8 @@
 name: Zowe Nightly Pipeline for v1
 on:
+  schedule:
+    - cron: 15 5 * * *
+    - cron: 44 16 * * *
   workflow_dispatch:
     inputs:
       skip-promote:
@@ -49,22 +52,22 @@ jobs:
       #============================================================================
 
       - name: '[Promote:Prep 1] Get zowe version of the build triggered from this nightly pipeline'
-        if: ${{ github.event.inputs.skip-promote == 'false' }}
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
         run: |
           echo ZOWE_ART_DIR=$(jfrog rt search \
           --build="zowe-install-packaging/staging/${{ steps.call-build.outputs.workflow-run-num }}" \
           "libs-snapshot-local/org/zowe/*/zowe*pax" | jq -r ".[].path" | sed "s#libs-snapshot-local/org/zowe/##g" | cut -f1 -d"/") >> $GITHUB_ENV
 
       - name: '[Promote:Prep 2] Checkout'
-        if: ${{ github.event.inputs.skip-promote == 'false' }}
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
         uses: actions/checkout@v2
 
       - name: '[Promote:Prep 3] Replace JFROG_CLI_BUILD_NAME'
-        if: ${{ github.event.inputs.skip-promote == 'false' }}
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
         run: echo JFROG_CLI_BUILD_NAME=${{ github.event.repository.name }}/${GITHUB_REF_NAME} >> $GITHUB_ENV
 
       - name: '[Promote:Prep 4] Convert release json template then print'
-        if: ${{ github.event.inputs.skip-promote == 'false' }}
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
         run: |
           sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ env.ZOWE_ART_DIR }}#g" \
             zowe-release-v1-template.json > zowe-release-v1.json
@@ -73,13 +76,13 @@ jobs:
           echo ZOWE_RELEASE_JSON=zowe-release-v1.json >> $GITHUB_ENV
 
       - name: '[Promote:Prep 5] Create various folders for later steps to use'
-        if: ${{ github.event.inputs.skip-promote == 'false' }}
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
         run: |
           # create folders under root project dir
           mkdir ${{ env.LOCAL_RELEASE_FOLDER }}
 
       - name: '[Promote:Validate 1] Validate zowe artifacts'
-        if: ${{ github.event.inputs.skip-promote == 'false' }}
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
         id: validate
         uses: ./validate
         with:
@@ -92,11 +95,11 @@ jobs:
       # this can be used in many later step: promote
 
       - name: '[Promote:Validate 2] Print promote-artifacts.json'
-        if: ${{ github.event.inputs.skip-promote == 'false' }}
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
         run: cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
 
       - name: '[Promote:Promote 1] Promote (jfrog rt copy)'
-        if: ${{ github.event.inputs.skip-promote == 'false' }}
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
         timeout-minutes: 10
         id: promote
         uses: ./promote
@@ -109,11 +112,11 @@ jobs:
       # file name will be: release-artifacts-download-spec.json
 
       - name: '[Promote:Promote 2] Print release-artifacts-download-spec.json'
-        if: ${{ github.event.inputs.skip-promote == 'false' }}
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
         run: cat ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }}
 
       - name: '[Promote:Message] Make slack message'
-        if: ${{ github.event.inputs.skip-promote == 'false' }}
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
         timeout-minutes: 2
         id: message
         uses: ./message
@@ -126,7 +129,7 @@ jobs:
 
       - name: '[Test 1] Call test workflow'
         uses: zowe-actions/shared-actions/workflow-remote-call-wait@main
-        if: ${{ github.event.inputs.skip-test == 'false' }}
+        if: ${{ github.event.inputs.skip-test != 'true' }}
         id: call-test
         with:
           github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
@@ -138,7 +141,7 @@ jobs:
           inputs-json-string: '{"install-test":"Zowe Nightly Tests","custom-zowe-artifactory-pattern-or-build-number":"${{ steps.call-build.outputs.workflow-run-num }}"}'
 
       - name: '[Test 2] Report test failure if applied'
-        if: ${{ steps.call-test.outputs.workflow-run-conclusion != 'success' && github.event.inputs.skip-test == 'false' }}
+        if: ${{ steps.call-test.outputs.workflow-run-conclusion != 'success' && github.event.inputs.skip-test != 'true' }}
         uses: actions/github-script@v5
         with:
           script: |
