@@ -26,6 +26,10 @@ utils.mandatoryInputCheck(releaseVersion, 'release-version')
 utils.mandatoryInputCheck(buildNum, 'build-num')
 
 // init
+var nightly = false
+if (releaseVersion.includes('nightly')) {
+    nightly = true
+}
 var releaseArtifactJsonObject = JSON.parse(fs.readFileSync(releaseArtifactDownloadFile))
 var message = []
 var slackMessage = []
@@ -57,16 +61,30 @@ releaseArtifactJsonObject.files.forEach(function(obj) {
     }
     else if(pattern.includes('zowe-cli-package') && pattern.endsWith('zip')) {
         message.push(`CLI Core Package: ${urlPrefix}${pattern}`)
-        slackMessage.push(`CLI Core Package: ${urlPrefix}${pattern}`)
+        if (nightly && pattern.startsWith('CLI_WAS_COPIED')) {
+            slackMessage.push(`The latest cli-package has been promoted as nightly in previous days`)
+        }
+        else {
+            slackMessage.push(`CLI Core Package: ${urlPrefix}${pattern}`)
+        }
     }
     else if(pattern.includes('zowe-cli-plugins') && pattern.endsWith('zip')) {
         message.push(`CLI Plugins Package: ${urlPrefix}${pattern}`)
-        slackMessage.push(`CLI Plugins Package: ${urlPrefix}${pattern}`)
+        if (nightly && pattern.startsWith('CLI_WAS_COPIED')) {
+            slackMessage.push(`The latest cli-plugins has been promoted as nightly in previous days`)
+        }
+        else {
+            slackMessage.push(`CLI Plugins Package: ${urlPrefix}${pattern}`)
+        }
     }
 })
 message.push(`
 *************************************************************************************************`)
-console.log(message.join('\n'))
+if (!nightly) {
+    console.log(message.join('\n'))
+} 
 core.setOutput('slack-message',slackMessage.join('\\n'))
+
+
 
 

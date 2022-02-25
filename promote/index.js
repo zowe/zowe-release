@@ -56,7 +56,12 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
         var preCheckOut = utils.sh(`jfrog rt search ${targetFullPath} | jq -r '.[]'`)
         if (preCheckOut != '') {
             // found
-            console.warn('Latest CLI artifacts were promoted the night before, skipping')
+            console.warn('Latest CLI artifacts were promoted the night before.')
+            downloadSpecJson['files'].push({
+                "pattern" : `CLI_WAS_COPIED${properties['target']}`,
+                "target"  : '',
+                "flat"    : "true"
+            })
             continue
         }
     }
@@ -121,7 +126,6 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
     }
 
     // make a jfrog download file spec for later steps
-    
     downloadSpecJson['files'].push({
         "pattern" : targetFullPath,
         "target"  : `${process.env.LOCAL_RELEASE_FOLDER}/`,

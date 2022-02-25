@@ -160,7 +160,7 @@ jobs:
           | cut -f1 -d"-") \
           >> $GITHUB_ENV
 
-      - name: '[Message 2] Send slack message indicating'
+      - name: '[Message 2] Send slack message'
         uses: slackapi/slack-github-action@v1.18.0
         if: always()
         env:
@@ -216,7 +216,7 @@ jobs:
                         "type": "plain_text",
                         "text": "Build Workflow Log"
                       },
-                      "url": "https://${{ steps.call-build.outputs.workflow-run-html-url }}"
+                      "url": "https://${{ steps.call-build.outputs.workflow-run-html-url || 'github.com/404' }}"
                     }
                   ]
                 },
@@ -246,7 +246,7 @@ jobs:
                         "type": "plain_text",
                         "text": "Test Workflow Log"
                       },
-                      "url": "https://${{ steps.call-test.outputs.workflow-run-html-url }}"
+                      "url": "https://${{ steps.call-test.outputs.workflow-run-html-url || 'github.com/404' }}"
                     }
                   ]
                 },
