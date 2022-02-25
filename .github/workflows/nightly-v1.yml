@@ -217,7 +217,7 @@ jobs:
                         "type": "plain_text",
                         "text": "Build Workflow Log"
                       },
-                      "url": "https://${{ steps.call-build.outputs.workflow-run-html-url || 'github.com/404' }}"
+                      "url": "${{ steps.call-build.outputs.workflow-run-html-url || 'https://www.github.com/404' }}"
                     }
                   ]
                 },
@@ -246,7 +246,7 @@ jobs:
                         "type": "plain_text",
                         "text": "Test Workflow Log"
                       },
-                      "url": "https://${{ steps.call-test.outputs.workflow-run-html-url || 'github.com/404' }}"
+                      "url": "${{ steps.call-test.outputs.workflow-run-html-url || 'https://www.github.com/404' }}"
                     }
                   ]
                 },
@@ -264,7 +264,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ steps.message.outputs.slack-message || 'n/a' }}"
+                    "text": "${{ steps.message.outputs.slack-message || 'No Artifacts getting promoted.' }}"
                   }
                 }
               ]
