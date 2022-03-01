@@ -155,7 +155,7 @@ jobs:
 
           echo STAGING_VER=$(jfrog rt search \
           --sort-by=created --sort-order=desc --limit=1 \
-          "libs-snapshot-local/org/zowe/*/zowe*pax" \
+          "libs-snapshot-local/org/zowe/*/zowe-1*pax" \
           | jq -r ".[].path" \
           | sed "s#libs-snapshot-local/org/zowe/##g" \
           | cut -f1 -d"/" \
