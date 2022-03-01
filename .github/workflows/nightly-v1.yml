@@ -8,12 +8,12 @@ on:
         description: Skip release?
         type: boolean
         required: false
-        default: 'false'
+        default: false
       skip-test:
         description: Skip test?
         type: boolean
         required: false
-        default: 'false'
+        default: false
 
 env:
   LOCAL_RELEASE_FOLDER: .release

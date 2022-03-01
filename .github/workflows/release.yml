@@ -22,12 +22,12 @@ on:
         type: boolean
         description: 'Force sign'
         required: false
-        default: 'false'
+        default: false
       force-tag:
         type: boolean
         description: 'Force tag'
         required: false
-        default: 'false'
+        default: false
 
 env:
   ZOWE_INSTALL_PACKAGING_OWNER: zowe
