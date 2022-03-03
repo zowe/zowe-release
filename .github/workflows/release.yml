@@ -32,8 +32,10 @@ on:
 env:
   ZOWE_INSTALL_PACKAGING_OWNER: zowe
   ZOWE_INSTALL_PACKAGING_REPO: zowe-install-packaging
-  CORRECT_NUM_OF_RELEASE_ARTIFACTS: 12
-  CORRECT_NUM_OF_SIGNED_ARTIFACTS: 26
+  V1_CORRECT_NUM_OF_RELEASE_ARTIFACTS: 12
+  V1_CORRECT_NUM_OF_SIGNED_ARTIFACTS: 26
+  V2_CORRECT_NUM_OF_RELEASE_ARTIFACTS: TODO
+  V2_CORRECT_NUM_OF_SIGNED_ARTIFACTS: TODO
   LOCAL_RELEASE_FOLDER: .release
   TAG_DIR: .tag
   ORIGINAL_STAGING_DIR: .original-zowe-install-packaging-staging
@@ -72,7 +74,7 @@ jobs:
       - name: '[Prep 3] Replace JFROG_CLI_BUILD_NAME'
         run: echo JFROG_CLI_BUILD_NAME=${{ github.event.repository.name }}/${GITHUB_REF_NAME} >> $GITHUB_ENV
 
-      - name: '[Prep 4 - v1 only!] v1: convert release json template then print'
+      - name: '[Prep 4 - v1 only!] some v1 specific tasks'
         if: startsWith(github.event.inputs.zowe-artifact-dir, '1')
         run: |
           sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ github.event.inputs.zowe-artifact-dir }}#g" \
@@ -80,8 +82,10 @@ jobs:
           echo "Current zowe-release-v1.json is:"
           cat zowe-release-v1.json
           echo ZOWE_RELEASE_JSON=zowe-release-v1.json >> $GITHUB_ENV
+          echo CORRECT_NUM_OF_RELEASE_ARTIFACTS=${{ env.V1_CORRECT_NUM_OF_RELEASE_ARTIFACTS }} >> $GITHUB_ENV
+          echo CORRECT_NUM_OF_SIGNED_ARTIFACTS=${{ env.V1_CORRECT_NUM_OF_SIGNED_ARTIFACTS }} >> $GITHUB_ENV
 
-      - name: '[Prep 4 - v2 only!] v2: convert release json template then print'
+      - name: '[Prep 4 - v2 only!] some v2 specific tasks'
         if: startsWith(github.event.inputs.zowe-artifact-dir, '2')
         run: |
           sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ github.event.inputs.zowe-artifact-dir }}#g" \
@@ -89,6 +93,8 @@ jobs:
           echo "Current zowe-release-v2.json is:"
           cat zowe-release-v2.json
           echo ZOWE_RELEASE_JSON=zowe-release-v2.json >> $GITHUB_ENV
+          echo CORRECT_NUM_OF_RELEASE_ARTIFACTS=${{ env.V2_CORRECT_NUM_OF_RELEASE_ARTIFACTS }} >> $GITHUB_ENV
+          echo CORRECT_NUM_OF_SIGNED_ARTIFACTS=${{ env.V2_CORRECT_NUM_OF_SIGNED_ARTIFACTS }} >> $GITHUB_ENV
 
       - name: '[Prep 5] Create various folders for later steps to use'
         run: |
@@ -411,6 +417,7 @@ jobs:
           fi
 
       # only execute this before v2 launches
+      # remove below step when v2 is GA'ed
       # on-demand, sometimes for hotfix you don't have to do it
       - name: '[EXTRA] extra work involving jfrog copy cli v2 artifacts in v1 release pipeline - formal release only!'
         if: ${{ startsWith(github.event.inputs.zowe-artifact-dir, '1') && env.IS_FORMAL_RELEASE == 'true' }}
