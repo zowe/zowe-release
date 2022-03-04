@@ -208,7 +208,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "Result: ${{ steps.call-build.outputs.workflow-run-conclusion }}"
+                      "text": "Result: ${{ steps.call-build.outputs.workflow-run-conclusion || failed }}"
                     }
                   ]
                 },
@@ -261,14 +261,14 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Artifacts*"
+                    "text": "*Promoted Artifacts*"
                   }
                 },
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ steps.message.outputs.slack-message || 'No Artifacts getting promoted.' }}"
+                    "text": "${{ steps.message.outputs.slack-message || 'No artifacts getting promoted.' }}"
                   }
                 }
               ]
