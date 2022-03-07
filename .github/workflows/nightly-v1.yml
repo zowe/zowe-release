@@ -208,7 +208,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "Result: ${{ steps.call-build.outputs.workflow-run-conclusion || failed }}"
+                      "text": "Result: ${{ steps.call-build.outputs.workflow-run-conclusion || 'failed' }}"
                     }
                   ]
                 },
