@@ -44,6 +44,7 @@ var promoteJsonObject = JSON.parse(fs.readFileSync(promoteJsonFileNameFull))
 var downloadSpecJson = {"files":[]}
 
 for (let [component, properties] of Object.entries(promoteJsonObject)) {
+    console.log(`Promoting artifact ${component}`)
     var buildTimestamp = properties['source']['props']['build.timestamp']
     var buildName = properties['source']['props']['build.name']
     var buildNumber = properties['source']['props']['build.number']
@@ -66,8 +67,7 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
         }
     }
     
-    console.log(`Promoting artifact ${component}
-- from              :  ${sourceFullPath}
+    console.log(`- from              :  ${sourceFullPath}
 - to                :  ${targetFullPath}
 - build name        :  ${buildName}
 - build number      :  ${buildNumber}
@@ -81,7 +81,7 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
     
     // validate result
     var promoteResultObject = JSON.parse(promoteResult)
-    console.log(`Artifact promoting result:
+    debug(`Artifact promoting result:
 - status  : ${promoteResultObject['status']}
 - success : ${promoteResultObject['totals']['success']}
 - failure : ${promoteResultObject['totals']['failure']}
@@ -106,7 +106,7 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
     // get current release pipeline run name and number
     props.push(`build.name=${context.repo.repo}/${context.ref.replace('refs/heads/','')}`)
     props.push(`build.number=${context.runNumber}`)
-    console.log(`Updating artifact properties:\n${props.join('\n')}`)
+    debug(`Updating artifact properties:\n${props.join('\n')}`)
 
     // update artifact property
     var cmd1 = `jfrog rt set-props "${targetFullPath}" "${props.join(';')}"`
@@ -115,7 +115,7 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
 
     // validate result
     var setPropsResultObject = JSON.parse(setPropsResult)
-    console.log(`Artifact set props result:
+    debug(`Artifact set props result:
 - status  : ${setPropsResultObject['status']}
 - success : ${setPropsResultObject['totals']['success']}
 - failure : ${setPropsResultObject['totals']['failure']}
