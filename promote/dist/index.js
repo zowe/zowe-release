@@ -14259,6 +14259,9 @@ var promoteJsonObject = JSON.parse(fs.readFileSync(promoteJsonFileNameFull))
 var downloadSpecJson = {"files":[]}
 
 for (let [component, properties] of Object.entries(promoteJsonObject)) {
+    console.log(`
+==================================================================================
+`)
     console.log(`Promoting artifact ${component}`)
     var buildTimestamp = properties['source']['props']['build.timestamp']
     var buildName = properties['source']['props']['build.name']
