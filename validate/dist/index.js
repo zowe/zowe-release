@@ -7500,7 +7500,7 @@ if (realPromote) {
     console.log(`Checking if ${releaseVersion} already exists in Artifactory ...`)
     var searchResult = searchArtifact(releaseFilesPattern)
     if (!searchResult || searchResult == null || searchResult == '') {
-        logValidate(`>>[validate 1/16]>> Target artifactory folder ${releaseFilesPattern} doesn\'t exist.`)
+        logValidate(`>>[validate 1/17]>> Target artifactory folder ${releaseFilesPattern} doesn\'t exist.`)
     } else {
         throw new Error(`Zowe version ${releaseVersion} already exists (${releaseFilesPattern})`)
     }
@@ -7509,12 +7509,12 @@ if (realPromote) {
     if (github.tagExistsRemote(`v${releaseVersion}`)) {
         throw new Error(`Repository tag v${releaseVersion} already exists.`)
     } else {
-        logValidate(`>>[validate 2/16]>> Repository tag v${releaseVersion} doesn't exist.`)
+        logValidate(`>>[validate 2/17]>> Repository tag v${releaseVersion} doesn't exist.`)
     }
 }
 else {
-    logValidate(`>>[validate 1/16]>> Nightly SKIPPED target artifactory folder check.`)
-    logValidate(`>>[validate 2/16]>> Nightly SKIPPED repository tag check.`)
+    logValidate(`>>[validate 1/17]>> Nightly SKIPPED target artifactory folder check.`)
+    logValidate(`>>[validate 2/17]>> Nightly SKIPPED repository tag check.`)
 }
 
 // start to build up a new json derived from the zowe release json file
@@ -7542,7 +7542,7 @@ if (zowePax['path']) {
 else {
 	throw new Error(`no zowe pax found in the build`)
 }
-logValidate(`>>[validate 3/16]>> Found Zowe build ${releaseArtifacts['zowe']['source']['path']}.`)
+logValidate(`>>[validate 3/17]>> Found Zowe build ${releaseArtifacts['zowe']['source']['path']}.`)
 
 if (realPromote) {
     // try to get Zowe build commit hash
@@ -7555,10 +7555,10 @@ if (realPromote) {
     if (!releaseArtifacts['zowe']['revision'].match(/^[0-9a-fA-F]{40}$/)) { // if it's a valid SHA-1 commit hash
         throw new Error(`Cannot extract git revision from build \"${releaseArtifacts['zowe']['buildName']}/${releaseArtifacts['zowe']['buildNumber']}\"`)
     }
-    logValidate(`>>[validate 4/16]>> Build ${releaseArtifacts['zowe']['buildName']}/${releaseArtifacts['zowe']['buildNumber']} commit hash is ${releaseArtifacts['zowe']['revision']}.`)
+    logValidate(`>>[validate 4/17]>> Build ${releaseArtifacts['zowe']['buildName']}/${releaseArtifacts['zowe']['buildNumber']} commit hash is ${releaseArtifacts['zowe']['revision']}.`)
 } 
 else {
-    logValidate(`>>[validate 4/16]>> Nightly SKIPPED commit hash parsing.`)
+    logValidate(`>>[validate 4/17]>> Nightly SKIPPED commit hash parsing.`)
 }
 
 // get SMP/e build
@@ -7578,7 +7578,7 @@ try {
         else {
             releaseArtifacts['smpe-zip']['target'] = smpeZipSource['path'].split("/").pop()
         }
-        logValidate(`>>[validate 5/16]>> Found SMP/e build ${smpeZipSource['path']}.`)
+        logValidate(`>>[validate 5/17]>> Found SMP/e build ${smpeZipSource['path']}.`)
 	}
     if (realPromote) {
         try {
@@ -7587,14 +7587,14 @@ try {
                 buildName,
                 buildNum
             )
-            logValidate(`>>[validate 6/16]>> Found SMP/e promote tar ${smpePromoteTar['path']}.`)
+            logValidate(`>>[validate 6/17]>> Found SMP/e promote tar ${smpePromoteTar['path']}.`)
             core.exportVariable('SMPE_PTF_PROMOTE_TAR_PATH', smpePromoteTar['path'])
         } catch (e2) {
             throw new Error(`no SMP/e promote tar found in the build`)
         }
     }
     else {
-        logValidate(`>>[validate 6/16]>> Nightly SKIPPED checks SMP/e PTF promote tar.`)
+        logValidate(`>>[validate 6/17]>> Nightly SKIPPED checks SMP/e PTF promote tar.`)
     }
 } catch (e1) {
 	throw new Error(`>>> no SMP/e zip found in the build`)
@@ -7617,14 +7617,14 @@ if (nightlyV1 || (realPromote && releaseVersion.startsWith('1'))) {
             else {
                 releaseArtifacts['docker-amd64']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.amd64-*.tar'].replace(/\*/g,releaseVersion)
             }
-            logValidate(`>>[validate 7/16]>> Found Docker image amd64 version ${dockerImageAmd64['path']}.`)
+            logValidate(`>>[validate 7/17]>> Found Docker image amd64 version ${dockerImageAmd64['path']}.`)
         }
     } catch (e1) {
         throw new Error(`>>> no Docker image amd64 version found in the build.`)
     }
 }
 else {
-    logValidate(`>>[validate 7/16]>> v2 nightly SKIPPED checks docker amd64 image.`)
+    logValidate(`>>[validate 7/17]>> v2 nightly SKIPPED checks docker amd64 image.`)
 }
 
 // docker sources amd64, docker s390x, docker sources s390x only needs for v1 real promote
@@ -7640,7 +7640,7 @@ if (realPromote && releaseVersion.startsWith('1')) {
             releaseArtifacts['docker-amd64-sources'] = {}
             releaseArtifacts['docker-amd64-sources']['source'] = dockerImageSourcesAmd64
             releaseArtifacts['docker-amd64-sources']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.sources.amd64-*.tar'].replace(/\*/g,releaseVersion)
-            logValidate(`>>[validate 8/16]>> Found Docker image amd64 sources version ${dockerImageSourcesAmd64['path']}.`)
+            logValidate(`>>[validate 8/17]>> Found Docker image amd64 sources version ${dockerImageSourcesAmd64['path']}.`)
         }
     } catch (e1) {
         throw new Error(`>>> no Docker image amd64 sources version found in the build.`)
@@ -7657,7 +7657,7 @@ if (realPromote && releaseVersion.startsWith('1')) {
             releaseArtifacts['docker-s390x'] = {}
             releaseArtifacts['docker-s390x']['source'] = dockerImageS390x
             releaseArtifacts['docker-s390x']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.s390x-*.tar'].replace(/\*/g,releaseVersion)
-            logValidate(`>>[validate 9/16]>> Found Docker image s390x version ${dockerImageS390x['path']}.`)
+            logValidate(`>>[validate 9/17]>> Found Docker image s390x version ${dockerImageS390x['path']}.`)
         }
     } catch (e1) {
         throw new Error(`>>> no Docker image s390x version found in the build.`)
@@ -7674,16 +7674,16 @@ if (realPromote && releaseVersion.startsWith('1')) {
             releaseArtifacts['docker-s390x-sources'] = {}
             releaseArtifacts['docker-s390x-sources']['source'] = dockerImageSourcesS390x
             releaseArtifacts['docker-s390x-sources']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.sources.s390x-*.tar'].replace(/\*/g,releaseVersion)
-            logValidate(`>>[validate 10/16]>> Found Docker image s390x sources version ${dockerImageSourcesS390x['path']}.`)
+            logValidate(`>>[validate 10/17]>> Found Docker image s390x sources version ${dockerImageSourcesS390x['path']}.`)
         }
     } catch (e1) {
         throw new Error(`>>> no Docker image s390x sources version found in the build.`)
     }
 }
 else {
-    logValidate(`>>[validate 8/16]>> v1/v2 nightlys, v2 real promote SKIPPED docker source amd64 check.`)
-    logValidate(`>>[validate 9/16]>> v1/v2 nightlys, v2 real promote SKIPPED docker s390x check.`)
-    logValidate(`>>[validate 10/16]>> v1/v2 nightlys, v2 real promote SKIPPED docker source s390x check.`)
+    logValidate(`>>[validate 8/17]>> v1/v2 nightlys, v2 real promote SKIPPED docker source amd64 check.`)
+    logValidate(`>>[validate 9/17]>> v1/v2 nightlys, v2 real promote SKIPPED docker s390x check.`)
+    logValidate(`>>[validate 10/17]>> v1/v2 nightlys, v2 real promote SKIPPED docker source s390x check.`)
 }
 
 // get containerization
@@ -7702,14 +7702,14 @@ try {
         else {
             releaseArtifacts['containerization']['target'] = containerization['path'].split('/').pop()
         }
-		logValidate(`>>[validate 11/16]>> Found containerization version ${containerization['path']}.`)
+		logValidate(`>>[validate 11/17]>> Found containerization version ${containerization['path']}.`)
 	}
 } catch (e1) {
 	throw new Error(`>>> no containerization version found in the build.`)
 }
 
 // get CLI CORE build source artifact
-if (false) { var cliNodejsSDKTypedoc, cliNodejsSDK, cliPythonSDK, cliPlugins, cliPackages; } //TODO
+if (false) { var pswi, cliNodejsSDKTypedoc, cliNodejsSDK, cliPythonSDK, cliPlugins, cliPackages; } //TODO
 
 // write to file and print content, this file will be used in promote step in workflow
 var promoteJsonFileNameFull = process.env.RUNNER_TEMP + '/promote-artifacts.json'

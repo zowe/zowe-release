@@ -11,7 +11,8 @@
             "server-bundle.sources.amd64-*.tar": "server-bundle.sources.amd64-*.tar",
             "server-bundle.s390x-*.tar": "server-bundle.s390x-*.tar",
             "server-bundle.sources.s390x-*.tar": "server-bundle.sources.s390x-*.tar",
-            "zowe-containerization-*.zip": "zowe-containerization-*.zip"
+            "zowe-containerization-*.zip": "zowe-containerization-*.zip",
+            "zowe-PSWI-*.pax.Z": "zowe-PSWI-*.pax.Z"
         }
     },
 
