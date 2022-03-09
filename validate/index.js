@@ -27,15 +27,25 @@ utils.mandatoryInputCheck(buildName, 'build-name')
 utils.mandatoryInputCheck(buildNum, 'build-num')
 utils.mandatoryInputCheck(releaseVersion, 'release-version')
 
-var nightly = false
-var nightly_v2 = false
+var nightlyV1 = false
+var nightlyV2 = false
+var realPromote = true      // by default we enter this action, we assume it is a actual promote
 
 console.log(`Checking if ${releaseVersion} is a valid semantic version ...`)
 if (releaseVersion.includes('nightly')) {
-    logValidate('Skip check since it is nightly pipeline')
-    nightly = true
+    if (releaseVersion == 'nightly-v1') {
+        nightlyV1 = true
+        logValidate('Skip check since it is v1 nightly pipeline')
+    }
+    else if (releaseVersion == 'nightly-v2') {
+        nightlyV2 = true
+        logValidate('Skip check since it is v2 nightly pipeline')
+    }
+    realPromote = false
 }
 else {
+    realPromote = true
+
     // validate release version scheme
     // thanks semver/semver, this regular expression comes from
     // https://github.com/semver/semver/issues/232#issuecomment-405596809
@@ -54,9 +64,6 @@ else {
         console.log(`>>>> Version ${releaseVersion} is NOT considered as a FORMAL RELEASE.`)
     }
 }
-if (nightly && releaseVersion != 'nightly'){
-    nightly_v2 = true
-}
 
 // init
 var zoweReleaseJsonFile = process.env.ZOWE_RELEASE_JSON
@@ -65,7 +72,7 @@ var zoweReleaseJsonObject = JSON.parse(fs.readFileSync(projectRootPath + '/' + z
 // this is the target Artifactory path will be released to
 var releaseFilesPattern = `${zoweReleaseJsonObject['zowe']['to']}/org/zowe/${releaseVersion}/*`
 
-if (!nightly) {
+if (realPromote) {
     // check artifactory release pattern
     console.log(`Checking if ${releaseVersion} already exists in Artifactory ...`)
     var searchResult = searchArtifact(releaseFilesPattern)
@@ -83,8 +90,8 @@ if (!nightly) {
     }
 }
 else {
-    logValidate(`>>[validate 1/16]>> SKIPPED`)
-    logValidate(`>>[validate 2/16]>> SKIPPED`)
+    logValidate(`>>[validate 1/16]>> Nightly SKIPPED target artifactory folder check.`)
+    logValidate(`>>[validate 2/16]>> Nightly SKIPPED repository tag check.`)
 }
 
 // start to build up a new json derived from the zowe release json file
@@ -101,11 +108,12 @@ var zowePax = searchArtifact(
 )
 if (zowePax['path']) {
 	releaseArtifacts['zowe']['source'] = zowePax
-    if (nightly) {
-        releaseArtifacts['zowe']['target'] = zowePax['path'].split("/").pop()
+    if (realPromote) {
+        releaseArtifacts['zowe']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-*.pax'].replace(/\*/g,releaseVersion)
     }
     else {
-	    releaseArtifacts['zowe']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-*.pax'].replace(/\*/g,releaseVersion)
+        //nightly artifact does not alter its name, just use the name from staging jfrog folder
+	    releaseArtifacts['zowe']['target'] = zowePax['path'].split("/").pop() //pop returns last item in array, ie. part after last slash
     } 
 }
 else {
@@ -113,7 +121,7 @@ else {
 }
 logValidate(`>>[validate 3/16]>> Found Zowe build ${releaseArtifacts['zowe']['source']['path']}.`)
 
-if (!nightly) {
+if (realPromote) {
     // try to get Zowe build commit hash
     if (releaseArtifacts['zowe']['source']['props']['vcs.revision'][0] != '' ) {
         releaseArtifacts['zowe']['revision'] = releaseArtifacts['zowe']['source']['props']['vcs.revision'][0]
@@ -127,7 +135,7 @@ if (!nightly) {
     logValidate(`>>[validate 4/16]>> Build ${releaseArtifacts['zowe']['buildName']}/${releaseArtifacts['zowe']['buildNumber']} commit hash is ${releaseArtifacts['zowe']['revision']}.`)
 } 
 else {
-    logValidate(`>>[validate 4/16]>> SKIPPED`)
+    logValidate(`>>[validate 4/16]>> Nightly SKIPPED commit hash parsing.`)
 }
 
 // get SMP/e build
@@ -140,16 +148,16 @@ try {
 	if (smpeZipSource['path']) {
 		releaseArtifacts['smpe-zip'] = {}
 		releaseArtifacts['smpe-zip']['source'] = smpeZipSource
-        if (nightly) {
-            releaseArtifacts['smpe-zip']['target'] = smpeZipSource['path'].split("/").pop()
-        }
-        else {
+        if (realPromote) {
             // special note that target for smpe shall be 'smpe-package'
             releaseArtifacts['smpe-zip']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-smpe-*.zip'].replace(/\*/g,'package-'+releaseVersion)
         }
+        else {
+            releaseArtifacts['smpe-zip']['target'] = smpeZipSource['path'].split("/").pop()
+        }
         logValidate(`>>[validate 5/16]>> Found SMP/e build ${smpeZipSource['path']}.`)
 	}
-    if (!nightly) {
+    if (realPromote) {
         try {
             var smpePromoteTar = searchArtifact(
                 `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['smpe-promote-*.tar']}`,
@@ -163,14 +171,14 @@ try {
         }
     }
     else {
-        logValidate(`>>[validate 6/16]>> SKIPPED`)
+        logValidate(`>>[validate 6/16]>> Nightly SKIPPED checks SMP/e PTF promote tar.`)
     }
 } catch (e1) {
 	throw new Error(`>>> no SMP/e zip found in the build`)
 }
 
-// get Docker images - amd64
-if (nightly && !nightly_v2) {
+// get Docker images - amd64 - this is a v1 specific task (including v1 nightly)
+if (nightlyV1 || (realPromote && releaseVersion.startsWith('1'))) {
     try {
         var dockerImageAmd64 = searchArtifact(
             `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['server-bundle.amd64-*.tar']}`,
@@ -180,7 +188,7 @@ if (nightly && !nightly_v2) {
         if (dockerImageAmd64['path']) {
             releaseArtifacts['docker-amd64'] = {}
             releaseArtifacts['docker-amd64']['source'] = dockerImageAmd64
-            if (nightly) {
+            if (nightlyV1) {
                 releaseArtifacts['docker-amd64']['target'] = dockerImageAmd64['path'].split("/").pop()
             }
             else {
@@ -193,10 +201,11 @@ if (nightly && !nightly_v2) {
     }
 }
 else {
-    logValidate(`>>[validate 7/16]>> SKIPPED `)
+    logValidate(`>>[validate 7/16]>> v2 nightly SKIPPED checks docker amd64 image.`)
 }
 
-if (!nightly) {
+// docker sources amd64, docker s390x, docker sources s390x only needs for v1 real promote
+if (realPromote && releaseVersion.startsWith('1')) {
     // get Docker images with sources - amd64
     try {
         var dockerImageSourcesAmd64 = searchArtifact(
@@ -249,9 +258,9 @@ if (!nightly) {
     }
 }
 else {
-    logValidate(`>>[validate 8/16]>> SKIPPED`)
-    logValidate(`>>[validate 9/16]>> SKIPPED`)
-    logValidate(`>>[validate 10/16]>> SKIPPED`)
+    logValidate(`>>[validate 8/16]>> v1/v2 nightlys, v2 real promote SKIPPED docker source amd64 check.`)
+    logValidate(`>>[validate 9/16]>> v1/v2 nightlys, v2 real promote SKIPPED docker s390x check.`)
+    logValidate(`>>[validate 10/16]>> v1/v2 nightlys, v2 real promote SKIPPED docker source s390x check.`)
 }
 
 // get containerization
@@ -264,11 +273,11 @@ try {
 	if (containerization['path']) {
 		releaseArtifacts['containerization'] = {}
 		releaseArtifacts['containerization']['source'] = containerization
-        if (nightly) {
-            releaseArtifacts['containerization']['target'] = containerization['path'].split('/').pop()
+        if (realPromote) {
+            releaseArtifacts['containerization']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-containerization-*.zip'].replace(/\*/g,releaseVersion)
         } 
         else {
-            releaseArtifacts['containerization']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-containerization-*.zip'].replace(/\*/g,releaseVersion)
+            releaseArtifacts['containerization']['target'] = containerization['path'].split('/').pop()
         }
 		logValidate(`>>[validate 11/16]>> Found containerization version ${containerization['path']}.`)
 	}
@@ -278,53 +287,53 @@ try {
 
 // get CLI CORE build source artifact
 var cliPackages
-if (nightly) {
+if (realPromote) {
     cliPackages = searchArtifact(
-        `${zoweReleaseJsonObject['zowe-cli']['nightlyFrom']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-*.zip']}`
+        `${zoweReleaseJsonObject['zowe-cli']['from']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-*.zip']}`
     )
 }
 else {
     cliPackages = searchArtifact(
-        `${zoweReleaseJsonObject['zowe-cli']['from']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-*.zip']}`
+        `${zoweReleaseJsonObject['zowe-cli']['nightlyFrom']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-*.zip']}`
     )
 }
 if (cliPackages['path']) {
 	releaseArtifacts['cli'] = {}
 	releaseArtifacts['cli']['source'] = cliPackages
-    if (nightly) {
-        releaseArtifacts['cli']['target'] = 'cli/' + cliPackages['path'].split('/').pop() // prefix cli is to put cli artifacts copied to org/zowe/nightly/cli/*
+    if (realPromote) {
+        releaseArtifacts['cli']['target'] = zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-*.zip'].replace(/1\*/g,releaseVersion) 
     }
     else {
-	    releaseArtifacts['cli']['target'] = zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-*.zip'].replace(/1\*/g,releaseVersion)
+	    releaseArtifacts['cli']['target'] = 'cli/' + cliPackages['path'].split('/').pop() // prefix cli is to put cli artifacts copied to org/zowe/nightly/cli/*
     }
     logValidate(`>>[validate 12/16]>> Found Zowe CLI build ${releaseArtifacts['cli']['source']['path']}.`)
 }
 
 // get CLI PLUGINS builds source artifact
 var cliPlugins
-if (nightly) {
+if (realPromote) {
     cliPlugins = searchArtifact(
-	    `${zoweReleaseJsonObject['zowe-cli']['nightlyFrom']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-*.zip']}`
+	    `${zoweReleaseJsonObject['zowe-cli']['from']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-*.zip']}`
     )
 }
 else {
     cliPlugins = searchArtifact(
-	    `${zoweReleaseJsonObject['zowe-cli']['from']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-*.zip']}`
+	    `${zoweReleaseJsonObject['zowe-cli']['nightlyFrom']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-*.zip']}`
     )
 }
 if (cliPlugins['path']) {
 	releaseArtifacts['cli-plugins'] = {}
 	releaseArtifacts['cli-plugins']['source'] = cliPlugins
-    if (nightly) {
-        releaseArtifacts['cli-plugins']['target'] = 'cli/' + cliPlugins['path'].split('/').pop()     // prefix cli is to put cli artifacts copied to org/zowe/nightly/cli/*
+    if (realPromote) {
+        releaseArtifacts['cli-plugins']['target'] = zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-*.zip'].replace(/1\*/g,releaseVersion)
     }
     else {
-        releaseArtifacts['cli-plugins']['target'] = zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-*.zip'].replace(/1\*/g,releaseVersion)
+        releaseArtifacts['cli-plugins']['target'] = 'cli/' + cliPlugins['path'].split('/').pop()     // prefix cli is to put cli artifacts copied to org/zowe/nightly/cli/*
     }
 	logValidate(`>>[validate 13/16]>> Found Zowe CLI Plugins ${releaseArtifacts['cli-plugins']['source']['path']}.`)
 }
 
-if (!nightly) {
+if (realPromote) {
     // get CLI python sdk build artifacts
     var cliPythonSDK = searchArtifact(
         `${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-python-sdk-*.zip']}`
@@ -359,9 +368,9 @@ if (!nightly) {
     }
 }
 else {
-    logValidate(`>>[validate 14/16]>> SKIPPED`)
-    logValidate(`>>[validate 15/16]>> SKIPPED`)
-    logValidate(`>>[validate 16/16]>> SKIPPED`)
+    logValidate(`>>[validate 14/16]>> Nightly SKIPPED Zowe CLI Python SDK check.`)
+    logValidate(`>>[validate 15/16]>> Nightly SKIPPED Zowe CLI NodeJS SDK check.`)
+    logValidate(`>>[validate 16/16]>> Nightly SKIPPED Zowe CLI NodeJS Typedoc SDK check.`)
 }
 
 // write to file and print content, this file will be used in promote step in workflow

@@ -89,7 +89,7 @@ jobs:
         with:
           build-name: zowe-install-packaging/staging
           build-num: ${{ steps.call-build.outputs.workflow-run-num }}
-          release-version: nightly
+          release-version: nightly-v1
 
       # Above step 'Validate' will generate a file (name is stored in its outputs.PROMOTE_JSON_FILE_NAME_FULL)
       # file name is: promote-artifacts.json
