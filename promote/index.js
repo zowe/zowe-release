@@ -45,7 +45,7 @@ var downloadSpecJson = {"files":[]}
 
 for (let [component, properties] of Object.entries(promoteJsonObject)) {
     console.log(`
-==================================================================================
+=====================================================================================================================
 Promoting artifact ${component}
 `)
     var buildTimestamp = properties['source']['props']['build.timestamp']
