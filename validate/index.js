@@ -338,7 +338,7 @@ try {
         logValidate(`>>[validate 13/16]>> Found Zowe CLI Plugins ${releaseArtifacts['cli-plugins']['source']['path']}.`)
     } 
 } catch (e1) {
-    throw new Error('>>> no CLI plugins is found in the build.')
+    // throw new Error('>>> no CLI plugins is found in the build.')
 }
 
 if (realPromote) {
@@ -354,7 +354,7 @@ if (realPromote) {
             logValidate(`>>[validate 14/16]>> Found Zowe CLI Python SDK ${releaseArtifacts['cli-python-sdk']['source']['path']}.`)
         }
     } catch (e1) {
-        throw new Error('>>> no CLI Python SDK found in the build.')
+        // throw new Error('>>> no CLI Python SDK found in the build.')
     }
 
     try {
@@ -369,7 +369,7 @@ if (realPromote) {
             logValidate(`>>[validate 15/16]>> Found Zowe CLI NodeJS SDK ${releaseArtifacts['cli-nodejs-sdk']['source']['path']}.`)
         }
     } catch (e1) {
-        throw new Error('>>> no CLI NodeJS SDK found in the build.')
+        // throw new Error('>>> no CLI NodeJS SDK found in the build.')
     }
 
     try {
@@ -384,7 +384,7 @@ if (realPromote) {
             logValidate(`>>[validate 16/16]>> Found Zowe CLI NodeJS Typedoc SDK ${releaseArtifacts['cli-nodejs-sdk-typedoc']['source']['path']}.`)
         }
     } catch (e1) {
-        throw new Error('>>> no CLI NodeJS Typedoc SDK found in the build.')
+        // throw new Error('>>> no CLI NodeJS Typedoc SDK found in the build.')
     }
 }
 else {
