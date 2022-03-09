@@ -298,7 +298,7 @@ try {
             `${zoweReleaseJsonObject['zowe-cli']['nightlyFrom']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-package-*.zip']}`
         )
     }
-    if (cliPackages && cliPackages['path']) {
+    if (cliPackages['path']) {
         releaseArtifacts['cli'] = {}
         releaseArtifacts['cli']['source'] = cliPackages
         if (realPromote) {
@@ -326,7 +326,7 @@ try {
             `${zoweReleaseJsonObject['zowe-cli']['nightlyFrom']}/${zoweReleaseJsonObject['zowe-cli']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli']['sourceFiles']['zowe-cli-plugins-*.zip']}`
         )
     }
-    if (cliPlugins && cliPlugins['path']) {
+    if (cliPlugins['path']) {
         releaseArtifacts['cli-plugins'] = {}
         releaseArtifacts['cli-plugins']['source'] = cliPlugins
         if (realPromote) {
