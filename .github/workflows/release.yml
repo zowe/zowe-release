@@ -137,8 +137,8 @@ jobs:
         with:
           promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
           release-version: ${{ github.event.inputs.zowe-release-version }}
-        # env:
-        #   DEBUG: 'zowe-release:promote'
+        env:
+          DEBUG: 'zowe-release:promote'
       
       # promote step above will also create a release artifacts download spec file for next download step to consume
       # file name is stored in its outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE
