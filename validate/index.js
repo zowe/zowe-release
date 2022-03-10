@@ -286,7 +286,7 @@ try {
 }
 
 // get CLI CORE build source artifact
-if (false) { //TODO
+if (nightlyV1 || releaseVersion.startsWith('1')) { //TODO
 try {
     var cliPackages
     if (realPromote) {
