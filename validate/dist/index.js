@@ -7709,7 +7709,7 @@ try {
 }
 
 // get CLI CORE build source artifact
-if (nightlyV1 || releaseVersion.startsWith('1')) { //TODO
+if (nightlyV1 || releaseVersion.startsWith('1')) { //FIXME: need to delete this line when v2 CLI artifacts are ready
 try {
     var cliPackages
     if (realPromote) {
@@ -7832,7 +7832,7 @@ else {
     logValidate(`>>[validate 16/17]>> Nightly SKIPPED Zowe CLI NodeJS Typedoc SDK check.`)
     logValidate(`>>[validate 17/17]>> Nightly SKIPPED PSWI check.`)
 }
-} //TODO
+} //FIXME: need to delete this line when v2 CLI artifacts are ready
 
 // write to file and print content, this file will be used in promote step in workflow
 var promoteJsonFileNameFull = process.env.RUNNER_TEMP + '/promote-artifacts.json'

@@ -107,7 +107,7 @@ jobs:
         uses: ./promote
         with:
           promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
-          release-version: nightly-v2
+          release-version: nightly/v2
       
       # promote step above will also create a release artifacts download spec file for next message step to consume
       # file name is stored in its outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE
