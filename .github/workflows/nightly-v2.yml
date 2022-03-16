@@ -41,8 +41,8 @@ jobs:
           branch-name: v2.x/staging
           poll-frequency: 3
           inputs-json-string: '{"BUILD_SMPE":"true","BUILD_PSWI_SMPE":"false","BUILD_KUBERNETES":"true","KEEP_TEMP_PAX_FOLDER":"false"}'
-        # env:
-        #   DEBUG: zowe-actions:shared-actions:workflow-remote-call-wait
+        env:
+          DEBUG: zowe-actions:shared-actions:workflow-remote-call-wait
 
       - name: '[Build 2] Report build failure if applied'
         if: ${{ steps.call-build.outputs.workflow-run-conclusion != 'success' }}
