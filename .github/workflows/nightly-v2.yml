@@ -1,8 +1,8 @@
-name: Zowe Nightly Pipeline for v1
+name: Zowe Nightly Pipeline for v2
 on:
-  schedule:
-    # this sets to 6.13am everyday UTC time
-    - cron: '13 6 * * *'
+  # schedule:
+  #   # this sets to 4.13am everyday UTC time
+  #   - cron: '13 4 * * *'
   workflow_dispatch:
     inputs:
       skip-promote:
@@ -38,9 +38,9 @@ jobs:
           owner: zowe
           repo: zowe-install-packaging
           workflow-filename: build-packaging.yml
-          branch-name: staging
+          branch-name: v2.x/staging
           poll-frequency: 3
-          inputs-json-string: '{"BUILD_SMPE":"true","BUILD_PSWI_SMPE":"false","BUILD_DOCKER":"true","BUILD_DOCKER_SOURCES":"false","BUILD_KUBERNETES":"true","KEEP_TEMP_PAX_FOLDER":"false"}'
+          inputs-json-string: '{"BUILD_SMPE":"true","BUILD_PSWI_SMPE":"false","BUILD_KUBERNETES":"true","KEEP_TEMP_PAX_FOLDER":"false"}'
         # env:
         #   DEBUG: zowe-actions:shared-actions:workflow-remote-call-wait
 
@@ -57,7 +57,7 @@ jobs:
         if: ${{ github.event.inputs.skip-promote != 'true' }}
         run: |
           echo ZOWE_ART_DIR=$(jfrog rt search \
-          --build="zowe-install-packaging/staging/${{ steps.call-build.outputs.workflow-run-num }}" \
+          --build="zowe-install-packaging/v2.x/staging/${{ steps.call-build.outputs.workflow-run-num }}" \
           "libs-snapshot-local/org/zowe/*/zowe*pax" | jq -r ".[].path" | sed "s#libs-snapshot-local/org/zowe/##g" | cut -f1 -d"/") >> $GITHUB_ENV
 
       - name: '[Promote:Prep 2] Checkout'
@@ -72,10 +72,10 @@ jobs:
         if: ${{ github.event.inputs.skip-promote != 'true' }}
         run: |
           sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ env.ZOWE_ART_DIR }}#g" \
-            zowe-release-v1-template.json > zowe-release-v1.json
-          echo "Current zowe-release-v1.json is:"
-          cat zowe-release-v1.json
-          echo ZOWE_RELEASE_JSON=zowe-release-v1.json >> $GITHUB_ENV
+            zowe-release-v2-template.json > zowe-release-v2.json
+          echo "Current zowe-release-v2.json is:"
+          cat zowe-release-v2.json
+          echo ZOWE_RELEASE_JSON=zowe-release-v2.json >> $GITHUB_ENV
 
       - name: '[Promote:Prep 5] Create various folders for later steps to use'
         if: ${{ github.event.inputs.skip-promote != 'true' }}
@@ -88,9 +88,9 @@ jobs:
         id: validate
         uses: ./validate
         with:
-          build-name: zowe-install-packaging/staging
+          build-name: zowe-install-packaging/v2.x/staging
           build-num: ${{ steps.call-build.outputs.workflow-run-num }}
-          release-version: nightly-v1
+          release-version: nightly-v2
 
       # Above step 'Validate' will generate a file (name is stored in its outputs.PROMOTE_JSON_FILE_NAME_FULL)
       # file name is: promote-artifacts.json
@@ -107,7 +107,7 @@ jobs:
         uses: ./promote
         with:
           promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
-          release-version: nightly-v1
+          release-version: nightly-v2
       
       # promote step above will also create a release artifacts download spec file for next message step to consume
       # file name is stored in its outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE
@@ -124,7 +124,7 @@ jobs:
         uses: ./message
         with:
           release-artifact-download-file: ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }}
-          release-version: nightly-v1
+          release-version: nightly-v2
           build-num: ${{ steps.call-build.outputs.workflow-run-num }}
 
       #============================================================================
@@ -138,7 +138,7 @@ jobs:
           owner: zowe
           repo: zowe-install-packaging
           workflow-filename: cicd-test.yml
-          branch-name: staging
+          branch-name: v2.x/staging
           poll-frequency: 10
           inputs-json-string: '{"install-test":"Zowe Nightly Tests","custom-zowe-artifactory-pattern-or-build-number":"${{ steps.call-build.outputs.workflow-run-num }}"}'
         # env:
@@ -160,7 +160,7 @@ jobs:
 
           echo STAGING_VER=$(jfrog rt search \
           --sort-by=created --sort-order=desc --limit=1 \
-          "libs-snapshot-local/org/zowe/*/zowe-1*pax" \
+          "libs-snapshot-local/org/zowe/*/zowe-2*pax" \
           | jq -r ".[].path" \
           | sed "s#libs-snapshot-local/org/zowe/##g" \
           | cut -f1 -d"/" \
