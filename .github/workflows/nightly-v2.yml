@@ -1,8 +1,8 @@
 name: Zowe Nightly Pipeline for v2
 on:
-  # schedule:
-  #   # this sets to 4.13am everyday UTC time
-  #   - cron: '13 4 * * *'
+  schedule:
+    # this sets to 4.13am everyday UTC time
+    - cron: '13 4 * * *'
   workflow_dispatch:
     inputs:
       skip-promote:
