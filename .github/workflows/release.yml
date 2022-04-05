@@ -215,7 +215,7 @@ jobs:
         id: tag-prep
         run: |   
           zowe_revision=$(cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }} | jq -r '.zowe.revision')
-          if [[ -z "$zowe_revision" ]]; then
+          if [[ -z "$zowe_revision" ]] || [[ "$zowe_revision" == "null" ]]; then
             RED='\033[0;31m'
             echo -e "${RED}\n missing zowe revision - it is not parsed properly, please check step: [Validate] Print promote-artifacts.json to find out what went wrong"
             exit 1
