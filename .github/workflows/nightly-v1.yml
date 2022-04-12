@@ -38,7 +38,7 @@ jobs:
           owner: zowe
           repo: zowe-install-packaging
           workflow-filename: build-packaging.yml
-          branch-name: staging
+          branch-name: v1.x/staging
           poll-frequency: 3
           inputs-json-string: '{"BUILD_SMPE":"true","BUILD_PSWI_SMPE":"false","BUILD_DOCKER":"true","BUILD_DOCKER_SOURCES":"false","BUILD_KUBERNETES":"true","KEEP_TEMP_PAX_FOLDER":"false"}'
         # env:
@@ -57,7 +57,7 @@ jobs:
         if: ${{ github.event.inputs.skip-promote != 'true' }}
         run: |
           echo ZOWE_ART_DIR=$(jfrog rt search \
-          --build="zowe-install-packaging/staging/${{ steps.call-build.outputs.workflow-run-num }}" \
+          --build="zowe-install-packaging/v1.x/staging/${{ steps.call-build.outputs.workflow-run-num }}" \
           "libs-snapshot-local/org/zowe/*/zowe*pax" | jq -r ".[].path" | sed "s#libs-snapshot-local/org/zowe/##g" | cut -f1 -d"/") >> $GITHUB_ENV
 
       - name: '[Promote:Prep 2] Checkout'
@@ -88,7 +88,7 @@ jobs:
         id: validate
         uses: ./validate
         with:
-          build-name: zowe-install-packaging/staging
+          build-name: zowe-install-packaging/v1.x/staging
           build-num: ${{ steps.call-build.outputs.workflow-run-num }}
           release-version: nightly-v1
 
@@ -138,7 +138,7 @@ jobs:
           owner: zowe
           repo: zowe-install-packaging
           workflow-filename: cicd-test.yml
-          branch-name: staging
+          branch-name: v1.x/staging
           poll-frequency: 10
           inputs-json-string: '{"install-test":"Zowe Nightly Tests","custom-zowe-artifactory-pattern-or-build-number":"${{ steps.call-build.outputs.workflow-run-num }}"}'
         # env:
