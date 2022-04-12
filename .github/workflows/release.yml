@@ -252,31 +252,39 @@ jobs:
           git tag "v$zowe_release_version"
           git push origin "v$zowe_release_version"
 
-      - name: '[Promote PTF 1 - formal release only!] Clone staging branch'
+      - name: '[Promote PTF 1 - v1 only!] Parse v1 staging branch'
+        if: startsWith(github.event.inputs.zowe-artifact-dir, '1')
+        run: echo STAGING_BRANCH_NAME=v1.x/staging >> $GITHUB_ENV
+
+      - name: '[Promote PTF 1 - v2 only!] Parse v2 staging branch'
+        if: startsWith(github.event.inputs.zowe-artifact-dir, '2')
+        run: echo STAGING_BRANCH_NAME=v2.x/staging >> $GITHUB_ENV
+
+      - name: '[Promote PTF 3 - formal release only!] Clone staging branch'
         if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
         uses: actions/checkout@v2
         with:
           repository: ${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
-          ref: staging
+          ref: ${{ env.STAGING_BRANCH_NAME }}
           token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
           path: ${{ env.ORIGINAL_STAGING_DIR }}
 
-      - name: '[Promote PTF 2 - formal release only!] Clone staging branch to a diff path to make new branch from it'
+      - name: '[Promote PTF 4 - formal release only!] Clone staging branch to a diff path to make new branch from it'
         if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
         uses: actions/checkout@v2
         with:
           repository: ${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
-          ref: staging
+          ref: ${{ env.STAGING_BRANCH_NAME }}
           token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
           path: ${{ env.PROMOTE_PTF_DIR }}
 
-      - name: '[Promote PTF 3 - formal release only!] Create a new branch (git checkout -b)'
+      - name: '[Promote PTF 5 - formal release only!] Create a new branch (git checkout -b)'
         if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
         run: |
           cd ${{ env.PROMOTE_PTF_DIR }}
           git checkout -b "users/robot/promote-ptf-from-${{ github.run_number }}"
 
-      - name: '[Promote PTF 4 - formal release only!] Download smpe-promote.tar'
+      - name: '[Promote PTF 6 - formal release only!] Download smpe-promote.tar'
         if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
         uses: zowe-actions/shared-actions/jfrog-download@main
         with:
@@ -285,7 +293,7 @@ jobs:
           extra-options: --flat=true
           expected-count: 1
 
-      - name: '[Promote PTF 5 - formal release only!] Doing remaining work'
+      - name: '[Promote PTF 7 - formal release only!] Doing remaining work'
         if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
         run: |
           # at the beginning, we are at root project dir of zowe-release
@@ -321,7 +329,7 @@ jobs:
           # push before creating PR
           git push https://${{ secrets.ZOWE_ROBOT_USER }}:${{ secrets.ZOWE_ROBOT_TOKEN }}@github.com/${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }} "users/robot/promote-ptf-from-${{ github.run_number }}"
         
-      - name: '[Promote PTF 6 - formal release only!] Create a new Pull Request'
+      - name: '[Promote PTF 8 - formal release only!] Create a new Pull Request'
         uses: actions/github-script@v5
         if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
         id: promote-ptf-6
@@ -340,7 +348,7 @@ jobs:
             return out.data.number;
           result-encoding: string
 
-      - name: '[Promote PTF 7 - formal release only!] Add PR reviewers'
+      - name: '[Promote PTF 9 - formal release only!] Add PR reviewers'
         if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' && steps.promote-ptf-6.outputs.result != '' }}
         uses: actions/github-script@v5
         with:
