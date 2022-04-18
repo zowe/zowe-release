@@ -7814,7 +7814,7 @@ if (realPromote) {
     try {
         // get PSWI build artifacts
         var pswi = searchArtifact(
-            `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/*/${zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-PSWI-*.pax.Z']}`
+            `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-PSWI-*.pax.Z']}`
         )
         if (pswi['path']) {
             releaseArtifacts['pswi'] = {}
