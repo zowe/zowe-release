@@ -1,0 +1,39 @@
+name: fake test
+on:
+  schedule:
+    # this sets to 6.13am everyday UTC time
+    - cron: '13 6 * * *'
+  workflow_dispatch:
+    inputs:
+      skip-promote:
+        description: Skip release?
+        type: boolean
+        required: false
+        default: false
+      skip-test:
+        description: Skip test?
+        type: boolean
+        required: false
+        default: false
+
+env:
+  LOCAL_RELEASE_FOLDER: .release
+
+jobs:
+  run-nightly-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: '[Test 1] Call test workflow'
+        uses: zowe-actions/shared-actions/workflow-remote-call-wait@main
+        if: ${{ github.event.inputs.skip-test != 'true' }}
+        id: call-test
+        with:
+          github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
+          owner: zowe
+          repo: zowe-install-packaging
+          workflow-filename: cicd-test.yml
+          branch-name: v1.x/staging
+          poll-frequency: 10
+          inputs-json-string: '{"install-test":"Zowe Nightly Tests"}'
+        env:
+          DEBUG: zowe-actions:shared-actions:workflow-remote-call-wait
