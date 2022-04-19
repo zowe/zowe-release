@@ -1,8 +1,5 @@
 name: fake test
 on:
-  schedule:
-    # this sets to 6.13am everyday UTC time
-    - cron: '13 6 * * *'
   workflow_dispatch:
     inputs:
       skip-promote:
