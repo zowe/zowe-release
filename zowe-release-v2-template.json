@@ -22,8 +22,8 @@
         "to" : "libs-release-local",
         "sourcePath" : "org/zowe/cli",
         "sourceFiles": {
-            "zowe-cli-package-*.zip": "zowe-cli-package-next-20220415-RC1.zip",
-            "zowe-cli-plugins-*.zip": "zowe-cli-plugins-next-20220415-RC1.zip"
+            "zowe-cli-package-*.zip": "zowe-cli-package-2*.zip",
+            "zowe-cli-plugins-*.zip": "zowe-cli-plugins-2*.zip"
         }
     },
 
@@ -32,8 +32,9 @@
         "to" : "libs-release-local",
         "sourcePath" : "org/zowe/sdk",
         "sourceFiles": {
-            "zowe-nodejs-sdk-*.zip": "zowe-nodejs-sdk-next-20220415-RC1.zip",
-            "zowe-nodejs-sdk-typedoc-*.zip": "zowe-nodejs-sdk-typedoc-next-20220415-RC1.zip"
+            "zowe-python-sdk-*.zip": "zowe-python-sdk-2*.zip",
+            "zowe-nodejs-sdk-*.zip": "zowe-nodejs-sdk-2*.zip",
+            "zowe-nodejs-sdk-typedoc-*.zip": "zowe-nodejs-sdk-typedoc-2*.zip"
         }
     }
 }

@@ -286,7 +286,6 @@ try {
 }
 
 // get CLI CORE build source artifact
-// if (nightlyV1 || releaseVersion.startsWith('1')) { //FIXME: need to delete this line when v2 CLI artifacts are ready
 try {
     var cliPackages
     if (realPromote) {
@@ -343,20 +342,20 @@ try {
 }
 
 if (realPromote) {
-    // try {
-    //     // get CLI python sdk build artifacts
-    //     var cliPythonSDK = searchArtifact(
-    //         `${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-python-sdk-*.zip']}`
-    //     )
-    //     if (cliPythonSDK['path']) {
-    //         releaseArtifacts['cli-python-sdk'] = {}
-    //         releaseArtifacts['cli-python-sdk']['source'] = cliPythonSDK
-    //         releaseArtifacts['cli-python-sdk']['target'] = zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-python-sdk-*.zip'].replace(/[0-9]\*/g,releaseVersion)
-    //         logValidate(`>>[validate 14/17]>> Found Zowe CLI Python SDK ${releaseArtifacts['cli-python-sdk']['source']['path']}.`)
-    //     }
-    // } catch (e1) {
-    //     throw new Error('>>> no CLI Python SDK found in the build.')
-    // }
+    try {
+        // get CLI python sdk build artifacts
+        var cliPythonSDK = searchArtifact(
+            `${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-python-sdk-*.zip']}`
+        )
+        if (cliPythonSDK['path']) {
+            releaseArtifacts['cli-python-sdk'] = {}
+            releaseArtifacts['cli-python-sdk']['source'] = cliPythonSDK
+            releaseArtifacts['cli-python-sdk']['target'] = zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-python-sdk-*.zip'].replace(/[0-9]\*/g,releaseVersion)
+            logValidate(`>>[validate 14/17]>> Found Zowe CLI Python SDK ${releaseArtifacts['cli-python-sdk']['source']['path']}.`)
+        }
+    } catch (e1) {
+        throw new Error('>>> no CLI Python SDK found in the build.')
+    }
 
     try {
         // get CLI nodejs sdk build artifacts
@@ -409,7 +408,6 @@ else {
     logValidate(`>>[validate 16/17]>> Nightly SKIPPED Zowe CLI NodeJS Typedoc SDK check.`)
     logValidate(`>>[validate 17/17]>> Nightly SKIPPED PSWI check.`)
 }
-// } //FIXME: need to delete this line when v2 CLI artifacts are ready
 
 // write to file and print content, this file will be used in promote step in workflow
 var promoteJsonFileNameFull = process.env.RUNNER_TEMP + '/promote-artifacts.json'
