@@ -387,20 +387,20 @@ if (realPromote) {
         throw new Error('>>> no CLI NodeJS Typedoc SDK found in the build.')
     }
 
-    // try {
-    //     // get PSWI build artifacts
-    //     var pswi = searchArtifact(
-    //         `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-PSWI-*.pax.Z']}`
-    //     )
-    //     if (pswi['path']) {
-    //         releaseArtifacts['pswi'] = {}
-    //         releaseArtifacts['pswi']['source'] = pswi
-    //         releaseArtifacts['pswi']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-PSWI-*.pax.Z'].replace(/\*/g,releaseVersion)
-    //         logValidate(`>>[validate 17/17]>> Found PSWI ${releaseArtifacts['pswi']['source']['path']}.`)
-    //     }
-    // } catch (e1) {
-    //     throw new Error('>>> no PSWI found in the build.')
-    // }
+    try {
+        // get PSWI build artifacts
+        var pswi = searchArtifact(
+            `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-PSWI-*.pax.Z']}`
+        )
+        if (pswi['path']) {
+            releaseArtifacts['pswi'] = {}
+            releaseArtifacts['pswi']['source'] = pswi
+            releaseArtifacts['pswi']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-PSWI-*.pax.Z'].replace(/\*/g,releaseVersion)
+            logValidate(`>>[validate 17/17]>> Found PSWI ${releaseArtifacts['pswi']['source']['path']}.`)
+        }
+    } catch (e1) {
+        throw new Error('>>> no PSWI found in the build.')
+    }
 }
 else {
     logValidate(`>>[validate 14/17]>> Nightly SKIPPED Zowe CLI Python SDK check.`)
