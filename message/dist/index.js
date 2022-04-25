@@ -6638,6 +6638,10 @@ releaseArtifactJsonObject.files.forEach(function(obj) {
         message.push(`Containerization: ${urlPrefix}${pattern}`)
         slackMessage.push(`Containerization: ${urlPrefix}${pattern}`)
     }
+    else if(pattern.includes('zowe-PSWI') && pattern.endsWith('.pax.Z')) {
+        message.push(`PSWI: ${urlPrefix}${pattern}`)
+        slackMessage.push(`PSWI: ${urlPrefix}${pattern}`)
+    }
     else if(pattern.includes('zowe-cli-package') && pattern.endsWith('zip')) {
         message.push(`CLI Core Package: ${urlPrefix}${pattern}`)
         if (nightly && pattern.startsWith('CLI_WAS_COPIED')) {
