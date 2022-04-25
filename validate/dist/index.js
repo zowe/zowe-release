@@ -7624,7 +7624,7 @@ if (nightlyV1 || (realPromote && releaseVersion.startsWith('1'))) {
     }
 }
 else {
-    logValidate(`>>[validate 7/17]>> v2 nightly SKIPPED checks docker amd64 image.`)
+    logValidate(`>>[validate 7/17]>> v2 SKIPPED checks docker amd64 image.`)
 }
 
 // docker sources amd64, docker s390x, docker sources s390x only needs for v1 real promote
