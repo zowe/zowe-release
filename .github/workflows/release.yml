@@ -155,13 +155,13 @@ jobs:
           RED='\033[0;31m'
           NC='\033[0m'
           success_count=$(jfrog rt download --threads 10 --spec ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }} | jq -r ".totals.success")
-          if [[ -z "$success_count" ]] || [[ "$success_count" != ${{ env.CORRECT_NUM_OF_RELEASE_ARTIFACTS }} ]]; then
-            echo -e "${RED}\nmissing some release artifacts, I have only found $success_count. Should be ${{ env.CORRECT_NUM_OF_RELEASE_ARTIFACTS }}."
-            exit 1
-          else
-            echo
-            echo -e "${GREEN}I have downloaded $success_count artifacts, looks okay, may proceed.${NC}\n"
-          fi
+          # if [[ -z "$success_count" ]] || [[ "$success_count" != ${{ env.CORRECT_NUM_OF_RELEASE_ARTIFACTS }} ]]; then
+          #   echo -e "${RED}\nmissing some release artifacts, I have only found $success_count. Should be ${{ env.CORRECT_NUM_OF_RELEASE_ARTIFACTS }}."
+          #   exit 1
+          # else
+          #   echo
+          #   echo -e "${GREEN}I have downloaded $success_count artifacts, looks okay, may proceed.${NC}\n"
+          # fi
       
       - name: '[Sign 2 - formal release or force sign only!] Sign prep'
         if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
@@ -202,13 +202,13 @@ jobs:
             ((expected_artifacts_count--))
           fi
           success_count=$(jfrog rt upload --threads 10 --spec ${{ steps.sign.outputs.SIGN_JSON_FILE_NAME_FULL }} | jq -r ".totals.success")
-          if [[ -z "$success_count" ]] || [[ "$success_count" != "$expected_artifacts_count" ]]; then
-            echo -e "${RED}\nmissing some signed upload artifacts, I have only uploaded $success_count. Should be $expected_artifacts_count."
-            exit 1
-          else
-            echo
-            echo -e "${GREEN}I have uploaded $success_count artifacts, looks okay, may proceed.${NC}\n"
-          fi
+          # if [[ -z "$success_count" ]] || [[ "$success_count" != "$expected_artifacts_count" ]]; then
+          #   echo -e "${RED}\nmissing some signed upload artifacts, I have only uploaded $success_count. Should be $expected_artifacts_count."
+          #   exit 1
+          # else
+          #   echo
+          #   echo -e "${GREEN}I have uploaded $success_count artifacts, looks okay, may proceed.${NC}\n"
+          # fi
 
       - name: '[Tag 1 - formal release or force tag only!] Get zowe revision'
         if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-tag == 'true' }}
