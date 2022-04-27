@@ -201,7 +201,7 @@ if (nightlyV1 || (realPromote && releaseVersion.startsWith('1'))) {
     }
 }
 else {
-    logValidate(`>>[validate 7/17]>> v2 nightly SKIPPED checks docker amd64 image.`)
+    logValidate(`>>[validate 7/17]>> v2 SKIPPED checks docker amd64 image.`)
 }
 
 // docker sources amd64, docker s390x, docker sources s390x only needs for v1 real promote
@@ -286,7 +286,6 @@ try {
 }
 
 // get CLI CORE build source artifact
-if (nightlyV1 || releaseVersion.startsWith('1')) { //FIXME: need to delete this line when v2 CLI artifacts are ready
 try {
     var cliPackages
     if (realPromote) {
@@ -409,7 +408,6 @@ else {
     logValidate(`>>[validate 16/17]>> Nightly SKIPPED Zowe CLI NodeJS Typedoc SDK check.`)
     logValidate(`>>[validate 17/17]>> Nightly SKIPPED PSWI check.`)
 }
-} //FIXME: need to delete this line when v2 CLI artifacts are ready
 
 // write to file and print content, this file will be used in promote step in workflow
 var promoteJsonFileNameFull = process.env.RUNNER_TEMP + '/promote-artifacts.json'
