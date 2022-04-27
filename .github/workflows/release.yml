@@ -4,11 +4,11 @@ on:
     inputs:
       zowe-artifact-dir:
         description: 'ZOWE_ARTIFACT_DIR'
-        default: '2.0.0-RC'
+        default: '2.0.0-SNAPSHOT'
         required: true
       zowe-build-name:
         description: 'ZOWE_BUILD_NAME'
-        default: 'zowe-install-packaging/v2.x/rc'
+        default: 'zowe-install-packaging/v2.x/master'
         required: true
       zowe-build-number:
         description: 'ZOWE_BUILD_NUMBER'
@@ -16,7 +16,7 @@ on:
         default: '827'
       zowe-release-version:
         description: 'ZOWE_RELEASE_VERSION'
-        default: '2.0.0-RC1'
+        default: '2.0.0'
         required: true
       force-sign:
         type: boolean
