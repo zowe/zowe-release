@@ -133,8 +133,8 @@ jobs:
         if: ${{ github.event.inputs.skip-test != 'true' }}
         run: |
           DAYOFWEEK=$(date +"%a")
-          if [[ "$DAYOFWEEK" == 'Sat' ]]; then
-            echo INSTALL_TEST="Zowe Weekly Tests" >> $GITHUB_ENV
+          if [[ "$DAYOFWEEK" == 'Sat' ]] || [[ "$DAYOFWEEK" == 'Wed' ]] ; then
+            echo INSTALL_TEST="Zowe Release Tests" >> $GITHUB_ENV
           else
             echo INSTALL_TEST="Zowe Nightly Tests" >> $GITHUB_ENV
           fi
