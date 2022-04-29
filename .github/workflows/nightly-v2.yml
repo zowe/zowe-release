@@ -1,7 +1,7 @@
 name: Zowe Nightly Pipeline for v2
 on:
   schedule:
-    # this sets to 4.13am everyday UTC time
+    # this sets to 4.13am everyday UTC time, 12.13am EST
     - cron: '13 4 * * *'
   workflow_dispatch:
     inputs:
@@ -129,7 +129,17 @@ jobs:
 
       #============================================================================
 
-      - name: '[Test 1] Call test workflow'
+      - name: '[Test 1] Determine what sets of tests to run'
+        if: ${{ github.event.inputs.skip-test != 'true' }}
+        run: |
+          DAYOFWEEK=$(date +"%a")
+          if [[ "$DAYOFWEEK" == 'Sat' ]]; then
+            echo INSTALL_TEST="Zowe Weekly Tests" >> $GITHUB_ENV
+          else
+            echo INSTALL_TEST="Zowe Nightly Tests" >> $GITHUB_ENV
+          fi
+      
+      - name: '[Test 2] Call test workflow'
         uses: zowe-actions/shared-actions/workflow-remote-call-wait@main
         if: ${{ github.event.inputs.skip-test != 'true' }}
         id: call-test
@@ -140,11 +150,11 @@ jobs:
           workflow-filename: cicd-test.yml
           branch-name: v2.x/staging
           poll-frequency: 10
-          inputs-json-string: '{"install-test":"Zowe Nightly Tests","custom-zowe-artifactory-pattern-or-build-number":"${{ steps.call-build.outputs.workflow-run-num }}"}'
+          inputs-json-string: '{"install-test":"${{ env.INSTALL_TEST }}","custom-zowe-artifactory-pattern-or-build-number":"${{ steps.call-build.outputs.workflow-run-num }}"}'
         # env:
         #   DEBUG: zowe-actions:shared-actions:workflow-remote-call-wait
           
-      - name: '[Test 2] Report test failure if applied'
+      - name: '[Test 3] Report test failure if applied'
         if: ${{ steps.call-test.outputs.workflow-run-conclusion != 'success' && github.event.inputs.skip-test != 'true' }}
         uses: actions/github-script@v5
         with:
