@@ -238,7 +238,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "Result: ${{ steps.call-test.outputs.workflow-run-conclusion || 'skipped' }}"
+                      "text": "Result: ${{ steps.call-test.outputs.workflow-run-conclusion || 'test is still running, or skipped' }}"
                     }
                   ]
                 },
@@ -251,7 +251,7 @@ jobs:
                         "type": "plain_text",
                         "text": "Test Workflow Log"
                       },
-                      "url": "${{ steps.call-test.outputs.workflow-run-html-url || 'https://www.github.com/404' }}"
+                      "url": "${{ steps.call-test.outputs.workflow-run-html-url || env.html_url || 'https://www.github.com/404' }}"
                     }
                   ]
                 },
