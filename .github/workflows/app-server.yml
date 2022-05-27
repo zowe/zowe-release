@@ -28,9 +28,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions: write-all
     steps:
       - name: 'zlux workflow'
-        permissions: write-all
         uses: zowe-actions/zlux-builds/git-release@v2.x/main
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
