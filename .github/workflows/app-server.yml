@@ -1,1 +1,40 @@
 #this action will is used for app-server release
+name: zlux-git-release
+on:
+  workflow_dispatch:
+    inputs: 
+      RELEASE_VERSION:
+        description: 'Version of release (vX.X.X)'
+        required: false
+      CREATE_RELEASE:
+        type: boolean
+        description: 'Create github release'
+        required: false
+      MERGE_TO_MASTER:
+        type: boolean
+        description: 'Merge rc branches to master'
+        required: false
+      UPDATE_RC:
+        type: boolean
+        description: 'Merge staging branches to rc'
+        required: false
+      ZOWE_COMMON_C_HEAD:
+        description: ''
+        required: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    needs: check-permission
+    steps:
+      - name: 'zlux workflow'
+        uses: zowe-actions/zlux-builds/git-release@v2.x/main
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-user: ${{ secrets.ZOWE_ROBOT_USER }}
+          github-password: ${{ secrets.ZOWE_ROBOT_TOKEN }}
+          github-email: ${{ secrets.ZOWE_ROBOT_EMAIL }}
+          release-version: ${{ github.event.inputs.RELEASE_VERSION }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      
+      
