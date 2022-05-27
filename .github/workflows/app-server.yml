@@ -38,6 +38,3 @@ jobs:
           github-password: ${{ secrets.ZOWE_ROBOT_TOKEN }}
           github-email: ${{ secrets.ZOWE_ROBOT_EMAIL }}
           release-version: ${{ github.event.inputs.RELEASE_VERSION }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-      
-      
