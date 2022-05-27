@@ -28,7 +28,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    needs: check-permission
     steps:
       - name: 'zlux workflow'
         uses: zowe-actions/zlux-builds/git-release@v2.x/main
