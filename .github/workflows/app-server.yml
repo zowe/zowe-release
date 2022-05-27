@@ -1,6 +1,9 @@
 #this action will is used for app-server release
 name: zlux-git-release
 on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    
   workflow_dispatch:
     inputs: 
       RELEASE_VERSION:
