@@ -4,19 +4,19 @@ on:
     inputs:
       zowe-artifact-dir:
         description: 'ZOWE_ARTIFACT_DIR'
-        default: 'x.xx.x-RC|SNAPSHOT'
+        default: '@.@@.@-RC|SNAPSHOT'
         required: true
       zowe-build-name:
         description: 'ZOWE_BUILD_NAME'
-        default: 'zowe-install-packaging/vx.x/rc|master'
+        default: 'zowe-install-packaging/v@.x/rc|master'
         required: true
       zowe-build-number:
         description: 'ZOWE_BUILD_NUMBER'
         required: true
-        default: 'xxx'
+        default: '@@@@'
       zowe-release-version:
         description: 'ZOWE_RELEASE_VERSION'
-        default: 'x.xx.x|-RCx'
+        default: '@.@@.@|-RC@'
         required: true
       force-sign:
         type: boolean
