@@ -47,7 +47,7 @@ jobs:
           USER_REPO: zowe/zowe-install-packaging
           BRANCH_NAME: v1.x/staging
           
-      - name: Decide if we need to run build part 1
+      - name: Decide if we need to run build
         id: run-check
         if: ${{ env.RUN_BUILD != 'YES' }}
         uses: ./decide-if-to-run-build
