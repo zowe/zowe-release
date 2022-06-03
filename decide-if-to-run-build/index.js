@@ -11,8 +11,6 @@
 const core = require('@actions/core')
 const { utils } = require('zowe-common')
 const fs = require('fs')
-const Debug = require('debug')
-const debug = Debug('zowe-release:decide-if-to-run-build')
 
 // Defaults
 const zoweRepoPrefix = 'https://api.github.com/repos/zowe'
@@ -29,71 +27,64 @@ const timeDiffTriggerMinString = core.getInput('time-difference-threshold-min')
 // Mandatory check
 utils.mandatoryInputCheck(timeDiffTriggerMinString, 'time-difference-threshold-min')
 
+
+
 // Main
 const timeDiffTriggerMin = parseInt(timeDiffTriggerMinString)
 var needBuild = false
-
-const sourceDependenciesObject = manifestJsonObject['sourceDependencies']
-
-for (componentGroup in sourceDependenciesObject) { // sourceDependencies is an array
-    if (sourceDependenciesObject.hasOwnProperty(componentGroup)) {
-        var entries = sourceDependenciesObject[componentGroup].entries
-        for (eachEntry in entries) { // entries is an array
-            if (entries.hasOwnProperty(eachEntry)) {
-                console.log(`===== Examining ${eachEntry.repository}, branch is ${eachEntry.tag}`)
-                // date and time returned is UTC time
-                var latestCommitDate = getLatestCommitDate(eachEntry.repository, eachEntry.tag)                
-                if (latestCommitDate && !latestCommitDate.includes('error')) { // everything looks good
-                    compareTimeToNow(latestCommitDate)
-                    if (needBuild) {
-                        break
-                    }
-                }
-                console.log('')
+const sourceDependenciesObject = manifestJsonObject['sourceDependencies'];
+for (let i=0; i<sourceDependenciesObject.length; i++) {
+    var entries = sourceDependenciesObject[i].entries
+    for (let j=0; j<entries.length; j++) {
+        var eachEntry = entries[j]
+        console.log(`===== Examining ${eachEntry.repository}, branch is ${eachEntry.tag}`)
+        // date and time returned is UTC time
+        var latestCommitDate = getLatestCommitDate(eachEntry.repository, eachEntry.tag)                
+        if (latestCommitDate && !latestCommitDate.includes('error')) { // everything looks good
+            compareTimeToNow(latestCommitDate)
+            if (needBuild) {
+                break
             }
         }
-        if (needBuild) {
-            break
-        }
+        console.log('')
+    }
+    if (needBuild) {
+        break
     }
 }
 
 console.log(`Loop through all projects is done, if we need to run a new build: ${needBuild}`)
 core.setOutput('need-to-build', needBuild)
-
 // FIN
 
-function compareTimeToNow(latestCommitDate) {
-    var dateTimeCommit = new Date(latestCommitDate)
-    var latestCommitInMs = dateTimeCommit.getTime()
-    debug(`Latest commit since Epoch: ${latestCommitInMs}`)
-
-    var dateTimeNow = new Date()
-    var dateTimeNowInMs = dateTimeNow.getTime()
-    debug(`Time now since Epoch: ${dateTimeNowInMs}`)
-
-    var timeDiffInMs = dateTimeNowInMs - latestCommitInMs
-    var timeDiffInHr = Math.floor(timeDiffInMs / 1000 / 60 / 60)
-
-    if (timeDiffInHr < timeDiffTriggerMin) {
-        console.log(`Latest commit happened less than ${timeDiffTriggerMin}, need to trigger a build.`)
-        needBuild = true
-    }
-}
 
 function getLatestCommitDate(repo, tag) {
     var curlPath = `"${zoweRepoPrefix}/${repo}/${latestCommitGithubAPIPath}${shaParameterGithubAPIPath}${tag}"`
     var curlCommandFull = `curl -s ${curlPath} | ${jqCommand}`
-    debug(`Ready to get latest commit date curl command: ${curlCommandFull}`)
+    console.log(`Ready to get latest commit date curl command: ${curlCommandFull}`)
     var latestCommitDateTimeInISO8601 = utils.sh(curlCommandFull)
-    debug(`DateTime returned is ${latestCommitDateTimeInISO8601}`)
+    console.log(`DateTime returned is ${latestCommitDateTimeInISO8601}`)
     return latestCommitDateTimeInISO8601
 }
 
+function compareTimeToNow(latestCommitDate) {
+    var dateTimeCommit = new Date(latestCommitDate)
+    var latestCommitInMs = dateTimeCommit.getTime()
+    console.log(`Latest commit since Epoch: ${latestCommitInMs}`)
 
+    var dateTimeNow = new Date()
+    var dateTimeNowInMs = dateTimeNow.getTime()
+    console.log(`Time now since Epoch: ${dateTimeNowInMs}`)
 
+    var timeDiffInMs = dateTimeNowInMs - latestCommitInMs
+    var timeDiffInHr = Math.floor(timeDiffInMs / 1000 / 60 / 60)
 
-
-
-
-
+    console.log(`Latest commit occured ${timeDiffInHr} ago`)
+    if (timeDiffInHr < timeDiffTriggerMin) {
+        console.log(`   less than ${timeDiffTriggerMin} hours, trigger a new build: YES`)
+        needBuild = true
+    }
+    else {
+        console.log(`   greater than ${timeDiffTriggerMin} hours, trigger a new build: NOPE`)
+    }
+}

@@ -6,6 +6,9 @@ jobs:
   playing:
     runs-on: ubuntu-latest
     steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v2
+
       - name: Download manifest file
         run: curl https://raw.githubusercontent.com/${{ env.USER_REPO }}/${{ env.BRANCH_NAME }}/manifest.json.template -o manifest.json
         env:
