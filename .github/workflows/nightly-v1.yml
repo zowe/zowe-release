@@ -18,7 +18,7 @@ on:
 
 env:
   LOCAL_RELEASE_FOLDER: .release
-  DAY_RUN_BLD_FULL_TEST: Fri
+  DAY_RUN_BLD_FULL_TEST: Sun
 
 jobs:
   if-to-run-build:
