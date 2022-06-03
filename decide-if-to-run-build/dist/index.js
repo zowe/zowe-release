@@ -6658,7 +6658,7 @@ function compareTimeToNow(latestCommitDate) {
     var timeDiffInMs = dateTimeNowInMs - latestCommitInMs
     var timeDiffInHr = Math.floor(timeDiffInMs / 1000 / 60 / 60)
 
-    console.log(`Latest commit occured ${timeDiffInHr} ago`)
+    console.log(`Latest commit occured ${timeDiffInHr} hours ago`)
     if (timeDiffInHr < timeDiffTriggerMin) {
         console.log(`   less than ${timeDiffTriggerMin} hours, trigger a new build: YES`)
         needBuild = true
