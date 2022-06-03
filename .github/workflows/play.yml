@@ -1,0 +1,18 @@
+name: Play
+on:
+  push:
+    
+jobs:
+  playing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download manifest file
+        run: curl https://raw.githubusercontent.com/${{ env.USER_REPO }}/${{ env.BRANCH_NAME }}/manifest.json.template -o manifest.json
+        env:
+          USER_REPO: zowe/zowe-install-packaging
+          BRANCH_NAME: v1.x/staging
+          
+      - name: aa
+        uses: ./decide-if-to-run-build
+        with:
+          time-difference-threshold-min: 24
