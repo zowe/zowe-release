@@ -58,8 +58,9 @@ jobs:
   run-nightly-pipeline:
     runs-on: ubuntu-latest
     needs: if-to-run-build
-    if: needs.if-to-run-build.outputs.RUN_BUILD == 'YES'
+    #if: needs.if-to-run-build.outputs.RUN_BUILD == 'YES'
     steps:
+      - run: echo ${{ needs.if-to-run-build.outputs.RUN_BUILD }}
       - name: 'Setup jFrog CLI'
         uses: jfrog/setup-jfrog-cli@v2
         env:
