@@ -27,8 +27,6 @@ const timeDiffTriggerMinString = core.getInput('time-difference-threshold-min')
 // Mandatory check
 utils.mandatoryInputCheck(timeDiffTriggerMinString, 'time-difference-threshold-min')
 
-
-
 // Main
 const timeDiffTriggerMin = parseInt(timeDiffTriggerMinString)
 var needBuild = false
@@ -54,7 +52,14 @@ for (let i=0; i<sourceDependenciesObject.length; i++) {
 }
 
 console.log(`Loop through all projects is done, if we need to run a new build: ${needBuild}`)
-core.setOutput('need-to-build', needBuild)
+if (needBuild) {
+    needBuildOutput = 'YES'
+}
+else {
+    needBuildOutput = 'NO'
+}
+core.exportVariable('RUN_BUILD', needBuildOutput)
+
 // FIN
 
 

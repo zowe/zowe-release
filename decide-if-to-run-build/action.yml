@@ -5,9 +5,6 @@ inputs:
     description: Triggering a new build if time difference between now and latest commit is less than this input, unit is hour. Default is 1 day
     default: '24'
     required: true
-outputs:
-  need-to-build:
-    description: output flag to indicate if we need to do a new build
 runs:
   using: 'node12'
   main: 'dist/index.js'

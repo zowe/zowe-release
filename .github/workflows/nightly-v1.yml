@@ -18,10 +18,45 @@ on:
 
 env:
   LOCAL_RELEASE_FOLDER: .release
+  DAY_RUN_BLD_FULL_TEST: Fri
 
 jobs:
+  if-to-run-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: 'Determine if today is the day we absolutely need to run build+test'
+        run: |
+          DAYOFWEEK=$(date +"%a")
+          if [[ "$DAYOFWEEK" == "${{ env.DAY_RUN_BLD_FULL_TEST }}" ]] ; then
+            echo RUN_BUILD="YES" >> $GITHUB_ENV
+            echo INSTALL_TEST="Zowe Release Tests" >> $GITHUB_ENV
+            echo "Today is $DAYOFWEEK, need to run build and full release test suite"
+          else
+            echo INSTALL_TEST="Zowe Nightly Tests" >> $GITHUB_ENV
+            echo "Today is $DAYOFWEEK, do not need to run build and full release test suite"
+          fi
+
+      - name: Download manifest file
+        if: ${{ env.RUN_BUILD != 'YES' }}
+        run: curl https://raw.githubusercontent.com/${{ env.USER_REPO }}/${{ env.BRANCH_NAME }}/manifest.json.template -o manifest.json
+        env:
+          USER_REPO: zowe/zowe-install-packaging
+          BRANCH_NAME: v1.x/staging
+          
+      - name: Decide if we need to run build part 1
+        id: run-check
+        if: ${{ env.RUN_BUILD != 'YES' }}
+        uses: ./decide-if-to-run-build
+        with:
+          time-difference-threshold-min: 24
+
   run-nightly-pipeline:
     runs-on: ubuntu-latest
+    needs: if-to-run-build
+    if: ${{ env.RUN_BUILD == 'YES' }}
     steps:
       - name: 'Setup jFrog CLI'
         uses: jfrog/setup-jfrog-cli@v2
@@ -140,7 +175,7 @@ jobs:
           workflow-filename: cicd-test.yml
           branch-name: v1.x/staging
           poll-frequency: 10
-          inputs-json-string: '{"install-test":"Zowe Nightly Tests","custom-zowe-artifactory-pattern-or-build-number":"${{ steps.call-build.outputs.workflow-run-num }}"}'
+          inputs-json-string: '{"install-test":"${{ env.INSTALL_TEST }}","custom-zowe-artifactory-pattern-or-build-number":"${{ steps.call-build.outputs.workflow-run-num }}"}'
         # env:
         #   DEBUG: zowe-actions:shared-actions:workflow-remote-call-wait
           
