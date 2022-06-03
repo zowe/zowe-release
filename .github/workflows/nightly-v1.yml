@@ -58,7 +58,7 @@ jobs:
         run: echo "::set-output name=RUN_BUILD::${{ env.RUN_BUILD }}"
 
     outputs:
-      RUN_BUILD: ${{ steps.set-output.outputs.RUN_BUILD }}
+      RUN_BUILD: ${{ steps.set-outputs.outputs.RUN_BUILD }}
       INSTALL_TEST: ${{ steps.absolutely-need-to-run.outputs.INSTALL_TEST }}
 
   run-nightly-pipeline:
