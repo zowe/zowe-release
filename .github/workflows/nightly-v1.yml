@@ -375,7 +375,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "Across all projects in the Zowe orgnization, there is no new commits occured in the last ${{ env.FORCE_BUILD_TIME_THRESHOLD }} hours. Thus, we skip the build and test today."
+                    "text": "Across all projects in the Zowe organization, there is no new commits occured in the last ${{ env.FORCE_BUILD_TIME_THRESHOLD }} hours. Thus, we skip the build and test today."
                   }
                 }
               ]
