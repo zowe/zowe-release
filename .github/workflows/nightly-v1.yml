@@ -324,6 +324,11 @@ jobs:
     needs: if-to-run-build
     if: ${{ needs.if-to-run-build.outputs.RUN_BUILD == 'NO' }}
     steps:
+      - name: 'Setup jFrog CLI'
+        uses: jfrog/setup-jfrog-cli@v2
+        env:
+          JF_ENV_1: ${{ secrets.JF_ARTIFACTORY_TOKEN }}
+          
       - name: Prepare slack message body
         run: | 
           echo TODAYS_DATE=$(date +'%m/%d/%Y') >> $GITHUB_ENV
@@ -370,7 +375,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "Across all projects in the Zowe orgnization, there is no new commits occured in the last ${{ env.FORCE_BUILD_TIME_THRESHOLD }} hours. Thus, we skip the build and test today"
+                    "text": "Across all projects in the Zowe orgnization, there is no new commits occured in the last ${{ env.FORCE_BUILD_TIME_THRESHOLD }} hours. Thus, we skip the build and test today."
                   }
                 }
               ]
