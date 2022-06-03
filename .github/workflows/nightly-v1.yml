@@ -321,7 +321,7 @@ jobs:
 
   post-slack-if-dont-need-build:
     runs-on: ubuntu-latest
-    needs: run-nightly-pipeline
+    needs: if-to-run-build
     if: ${{ needs.if-to-run-build.outputs.RUN_BUILD == 'NO' }}
     steps:
       - name: Prepare slack message body
