@@ -10,6 +10,75 @@ inputs:
   release-version:
     description: zowe release version
     required: true
+  validate-artifactory-folder:
+    description: validate if artifactory folder exists already
+    required: false
+    default: 'true'
+  validate-release-ver-tag:
+    description: validate if release version tag exists already
+    required: false
+    default: 'true'
+  validate-commit-hash:
+    description: validate commit hash (vcs)
+    required: false
+    default: 'true'
+  validate-pax:
+    description: validate zowe.pax
+    required: false
+    default: 'true'
+  validate-smpe:
+    description: validate smpe.zip
+    required: false
+    default: 'true'
+  validate-smpe-promote-tar:
+    description: validate smpe-promote.tar
+    required: false
+    default: 'true'
+  validate-docker-amd64:
+    description: validate server-bundle.amd64
+    required: false
+    default: 'true'
+  validate-docker-amd64-sources:
+    description: validate server-bundle.amd64.sources
+    required: false
+    default: 'true'
+  validate-docker-s390x:
+    description: validate server-bundle.s390x
+    required: false
+    default: 'true'
+  validate-docker-s390x-sources:
+    description: validate server-bundle.s390x.sources
+    required: false
+    default: 'true'
+  validate-containerization:
+    description: validate containerization.zip
+    required: false
+    default: 'true'
+  validate-cli-package:
+    description: validate cli-package.zip
+    required: false
+    default: 'true'
+  validate-cli-plugins:
+    description: validate cli-plugins.zip
+    required: false
+    default: 'true'
+  validate-cli-python-sdk:
+    description: validate python-sdk.zip
+    required: false
+    default: 'true'
+  validate-cli-nodejs-sdk:
+    description: validate nodejs-sdk.zip
+    required: false
+    default: 'true'
+  validate-cli-nodejs-sdk-typedoc:
+    description: validate nodejs-sdk-typedoc.zip
+    required: false
+    default: 'true'
+  validate-pswi:
+    description: validate pswi.pax.Z
+    required: false
+    default: 'true'
+  
 outputs:
   PROMOTE_JSON_FILE_NAME_FULL:
     description: the full file path to be used in promote step
