@@ -1,0 +1,13 @@
+name: Zowe Release Old History
+on:   
+  workflow_dispatch:
+
+jobs:
+  check-permission:
+    runs-on: ubuntu-latest
+    steps:
+      # this action will fail the whole workflow if permission check fails
+      - name: hello world
+        run: echo "Hello World"
+
+# this is just a dummy workflow to save old release workflow logs
