@@ -58,6 +58,9 @@ if (process.env.IS_FORMAL_RELEASE) {
 
 // sign and hash each file then add into upload file spec object
 Object.values(promoteJsonObject).forEach(properties => {
+    if (!properties['target']) { // we simply skip signing when property is zowe
+        return 
+    }
     var file = `${localReleaseFolder}/${properties['target']}`
     if (utils.fileExists(file, true)) {    
         console.log(`>>> Signing ${properties['target']} ...`)

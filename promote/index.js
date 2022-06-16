@@ -44,6 +44,9 @@ var promoteJsonObject = JSON.parse(fs.readFileSync(promoteJsonFileNameFull))
 var downloadSpecJson = {"files":[]}
 
 for (let [component, properties] of Object.entries(promoteJsonObject)) {
+    if (component == 'zowe') { // we simply skip if component is zowe because there is nothing to be promoted within zowe property
+        continue
+    }
     console.log(`
 =====================================================================================================================
 Promoting artifact ${component}

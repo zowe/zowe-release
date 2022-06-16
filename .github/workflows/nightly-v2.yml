@@ -91,6 +91,18 @@ jobs:
           build-name: zowe-install-packaging/v2.x/staging
           build-num: ${{ steps.call-build.outputs.workflow-run-num }}
           release-version: nightly-v2
+          validate-artifactory-folder: false
+          validate-release-ver-tag: false
+          validate-commit-hash: false
+          validate-smpe-promote-tar: false
+          validate-docker-amd64: false
+          validate-docker-amd64-sources: false
+          validate-docker-s390x: false
+          validate-docker-s390x-sources: false
+          validate-cli-python-sdk: false
+          validate-cli-nodejs-sdk: false
+          validate-cli-nodejs-sdk-typedoc: false
+          validate-pswi: false
 
       # Above step 'Validate' will generate a file (name is stored in its outputs.PROMOTE_JSON_FILE_NAME_FULL)
       # file name is: promote-artifacts.json
