@@ -13,14 +13,17 @@ on:
         type: boolean
         description: 'Create github release'
         required: false
+        default: false
       MERGE_TO_MASTER:
         type: boolean
         description: 'Merge rc branches to master'
         required: false
+        default: false
       UPDATE_RC:
         type: boolean
         description: 'Merge staging branches to rc'
         required: false
+        default: false
       ZOWE_COMMON_C_HEAD:
         description: ''
         required: false
@@ -38,3 +41,7 @@ jobs:
           github-password: ${{ secrets.ZOWE_ROBOT_TOKEN }}
           github-email: ${{ secrets.ZOWE_ROBOT_EMAIL }}
           release-version: ${{ github.event.inputs.RELEASE_VERSION }}
+          create-release: ${{ github.event.inputs.CREATE_RELEASE }}
+          merge-to-master: ${{ github.event.inputs.MERGE_TO_MASTER }}
+          update-rc: ${{ github.event.inputs.UPDATE_RC }}
+          zowe-common-c-head: ${{ github.event.inputs.ZOWE_COMMON_C_HEAD }}
