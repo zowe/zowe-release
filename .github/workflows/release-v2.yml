@@ -41,22 +41,22 @@ env:
   PROMOTE_PTF_DIR: .promote-ptf
 
 jobs:
-  check-permission:
-    runs-on: ubuntu-latest
-    steps:
-      # this action will fail the whole workflow if permission check fails
-      - name: check permission
-        id: permission-check
-        uses: zowe-actions/shared-actions/permission-check@main
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}  
+  # check-permission:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     # this action will fail the whole workflow if permission check fails
+  #     - name: check permission
+  #       id: permission-check
+  #       uses: zowe-actions/shared-actions/permission-check@main
+  #       with:
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}  
 
-      - name: parse permission returned
-        run: |
-          if [[ "${{ steps.permission-check.outputs.user-permission }}" != "admin" ]]; then
-            echo "I am not seeing an admin running this workflow. For security, I am going to stop this workflow here..."
-            exit 1
-          fi
+  #     - name: parse permission returned
+  #       run: |
+  #         if [[ "${{ steps.permission-check.outputs.user-permission }}" != "admin" ]]; then
+  #           echo "I am not seeing an admin running this workflow. For security, I am going to stop this workflow here..."
+  #           exit 1
+  #         fi
 
   input-check:
     runs-on: ubuntu-latest
