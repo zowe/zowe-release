@@ -1,0 +1,10 @@
+{ 
+    "zowe" : {
+        "from" : "libs-snapshot-local",
+        "to" : "libs-release-local",
+        "sourcePath" : "org/zowe/{ZOWE_ARTIFACT_DIR}",
+        "sourceFiles": {
+            "zowe-containerization-*.zip": "zowe-containerization-*.zip"
+        }
+    }
+}

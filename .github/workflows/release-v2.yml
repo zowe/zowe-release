@@ -18,6 +18,14 @@ on:
         description: 'ZOWE_RELEASE_VERSION'
         default: '2.@@.@|-RC@'
         required: true
+      zowe-release-artifacts:
+        description: 'Which artifacts to release'
+        type: choice
+        options:
+          - all
+          - containers
+        default: all
+        required: true
       force-sign:
         type: boolean
         description: 'Force sign'
@@ -98,10 +106,20 @@ jobs:
       - name: '[Prep 3] Replace JFROG_CLI_BUILD_NAME'
         run: echo JFROG_CLI_BUILD_NAME=${{ github.event.repository.name }}/${GITHUB_REF_NAME} >> $GITHUB_ENV
 
-      - name: '[Prep 4] process zowe-release-v2.json'
+      - name: '[Prep 4] all artifacts: process zowe-release-v2.json'
+        if: ${{ github.event.inputs.zowe-release-artifacts == 'all' }}
         run: |
           sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ github.event.inputs.zowe-artifact-dir }}#g" \
             zowe-release-v2-template.json > zowe-release-v2.json
+          echo "Current zowe-release-v2.json is:"
+          cat zowe-release-v2.json
+          echo ZOWE_RELEASE_JSON=zowe-release-v2.json >> $GITHUB_ENV
+
+      - name: '[Prep 4] container-only: process zowe-release-v2.json'
+        if: ${{ github.event.inputs.zowe-release-artifacts == 'containers' }}
+        run: |
+          sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ github.event.inputs.zowe-artifact-dir }}#g" \
+            zowe-release-v2-template-containers.json > zowe-release-v2.json
           echo "Current zowe-release-v2.json is:"
           cat zowe-release-v2.json
           echo ZOWE_RELEASE_JSON=zowe-release-v2.json >> $GITHUB_ENV
