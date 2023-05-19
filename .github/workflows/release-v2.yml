@@ -181,7 +181,7 @@ jobs:
         run: |
           private_keyfile_path="${{ runner.temp }}/private.key"
           echo "${{ secrets.GPG_PRIVATE_KEY }}" > $private_keyfile_path
-          echo ::set-output name=PRIVATE_KEYFILE_PATH::$private_keyfile_path
+          echo PRIVATE_KEYFILE_PATH=$private_keyfile_path >> $GITHUB_OUTPUT
 
       - name: '[Sign 3 - formal release or force sign only!] Actual sign work'
         if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-sign == 'true' }}
@@ -232,7 +232,7 @@ jobs:
             echo -e "${RED}\n missing zowe revision - it is not parsed properly, please check step: [Validate] Print promote-artifacts.json to find out what went wrong"
             exit 1
           fi
-          echo ::set-output name=ZOWE_REVISION::$zowe_revision
+          echo ZOWE_REVISION=$zowe_revision >> $GITHUB_OUTPUT
 
       - name: '[Tag 2 - formal release or force tag only!] Clone master branch to prepare for tagging'
         if: ${{ env.IS_FORMAL_RELEASE == 'true' || github.event.inputs.force-tag == 'true' }}
