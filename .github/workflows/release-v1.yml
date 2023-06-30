@@ -359,7 +359,7 @@ jobs:
               repo: '${{ env.ZOWE_INSTALL_PACKAGING_REPO }}',
               pull_number: ${{ steps.promote-ptf-6.outputs.result }},
               reviewers: [
-                'jackjia-ibm','FlappiTomic','MarkAckert'
+                'MarkAckert','ojcelis'
               ]
             });
 
