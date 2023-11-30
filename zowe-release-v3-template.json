@@ -1,0 +1,40 @@
+{ 
+    "zowe" : {
+        "from" : "libs-snapshot-local",
+        "to" : "libs-release-local",
+        "sourcePath" : "org/zowe/{ZOWE_ARTIFACT_DIR}",
+        "sourceFiles": {
+            "zowe-*.pax": "zowe-*.pax",
+            "zowe-smpe-*.zip": "zowe-smpe-*.zip",
+            "smpe-promote-*.tar": "smpe-promote-*.tar",
+            "server-bundle.amd64-*.tar": "server-bundle.amd64-*.tar",
+            "server-bundle.sources.amd64-*.tar": "server-bundle.sources.amd64-*.tar",
+            "server-bundle.s390x-*.tar": "server-bundle.s390x-*.tar",
+            "server-bundle.sources.s390x-*.tar": "server-bundle.sources.s390x-*.tar",
+            "zowe-containerization-*.zip": "zowe-containerization-*.zip",
+            "zowe-PSWI-*.pax.Z": "zowe-PSWI-*.pax.Z"
+        }
+    },
+
+    "zowe-cli" : {
+        "nightlyFrom" : "libs-snapshot-local",
+        "from" : "libs-release-local",
+        "to" : "libs-release-local",
+        "sourcePath" : "org/zowe/cli",
+        "sourceFiles": {
+            "zowe-cli-package-*.zip": "zowe-cli-package-3*.zip",
+            "zowe-cli-plugins-*.zip": "zowe-cli-plugins-3*.zip"
+        }
+    },
+
+    "zowe-cli-sdk" : {
+        "from" : "libs-release-local",
+        "to" : "libs-release-local",
+        "sourcePath" : "org/zowe/sdk",
+        "sourceFiles": {
+            "zowe-python-sdk-*.zip": "zowe-python-sdk-3*.zip",
+            "zowe-nodejs-sdk-*.zip": "zowe-nodejs-sdk-3*.zip",
+            "zowe-nodejs-sdk-typedoc-*.zip": "zowe-nodejs-sdk-typedoc-3*.zip"
+        }
+    }
+}
