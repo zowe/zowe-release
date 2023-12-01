@@ -15,6 +15,11 @@ on:
         type: boolean
         required: false
         default: false
+      skip-announce:
+        description: Skip Slack announce?
+        type: boolean
+        required: false
+        default: false
 
 env:
   LOCAL_RELEASE_FOLDER: .release
@@ -176,7 +181,7 @@ jobs:
       #============================================================================
 
       - name: '[Message 1] prepare slack message body'
-        if: always()
+        if: ${{ always() && github.event.inputs.skip-announce != 'true' }}
         run: | 
           echo TODAYS_DATE=$(date +'%m/%d/%Y') >> $GITHUB_ENV
 
@@ -191,7 +196,7 @@ jobs:
 
       - name: '[Message 2] Send slack message'
         uses: slackapi/slack-github-action@v1.18.0
-        if: always()
+        if: ${{ always() &&  github.event.inputs.skip-announce != 'true' }}
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
         with:
