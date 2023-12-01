@@ -46,6 +46,7 @@ utils.mandatoryInputCheck(releaseVersion, 'release-version')
 
 var nightlyV1 = false
 var nightlyV2 = false
+var nightlyV3 = false
 var realPromote = true
 
 console.log(`Checking if ${releaseVersion} is a valid semantic version ...`)
@@ -57,6 +58,10 @@ if (releaseVersion.includes('nightly')) {
     else if (releaseVersion == 'nightly-v2') {
         nightlyV2 = true
         logValidate('Skip check since it is v2 nightly pipeline')
+    } 
+    else if (releaseVersion == 'nightly-v3') {
+        nightlyV3 = true
+        logValidate('Skip check since it is v3 nightly pipeline')
     }
     realPromote = false
 }

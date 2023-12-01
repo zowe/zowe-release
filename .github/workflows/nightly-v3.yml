@@ -1,0 +1,298 @@
+name: Zowe Nightly Pipeline for v3
+on:
+  schedule:
+    # this sets to 7.10am everyday UTC time, 3.10am EST
+    - cron: '10 7 * * *'
+  workflow_dispatch:
+    inputs:
+      skip-promote:
+        description: Skip release?
+        type: boolean
+        required: false
+        default: false
+      skip-test:
+        description: Skip test?
+        type: boolean
+        required: false
+        default: false
+
+env:
+  LOCAL_RELEASE_FOLDER: .release
+
+jobs:
+  run-nightly-pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Setup jFrog CLI'
+        uses: jfrog/setup-jfrog-cli@v2
+        env:
+          JF_ENV_1: ${{ secrets.JF_ARTIFACTORY_TOKEN }}
+
+      #============================================================================
+
+      - name: '[Build 1] Call build workflow'
+        uses: zowe-actions/shared-actions/workflow-remote-call-wait@main
+        id: call-build
+        with:
+          github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
+          owner: zowe
+          repo: zowe-install-packaging
+          workflow-filename: build-packaging.yml
+          branch-name: v3.x/staging
+          poll-frequency: 3
+          inputs-json-string: '{"BUILD_SMPE":"true","BUILD_PSWI":"false","BUILD_KUBERNETES":"true","KEEP_TEMP_PAX_FOLDER":"false"}'
+        env:
+          DEBUG: zowe-actions:shared-actions:workflow-remote-call-wait
+
+      - name: '[Build 2] Report build failure if applied'
+        if: ${{ steps.call-build.outputs.workflow-run-conclusion != 'success' }}
+        uses: actions/github-script@v5
+        with:
+          script: |
+            core.setFailed('Build workflow ${{ steps.call-build.outputs.workflow-run-num }} is not successful')
+
+      #============================================================================
+
+      - name: '[Promote:Prep 1] Get zowe version of the build triggered from this nightly pipeline'
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
+        run: |
+          echo ZOWE_ART_DIR=$(jfrog rt search \
+          --build="zowe-install-packaging/v3.x/staging/${{ steps.call-build.outputs.workflow-run-num }}" \
+          "libs-snapshot-local/org/zowe/*/zowe*pax" | jq -r ".[].path" | sed "s#libs-snapshot-local/org/zowe/##g" | cut -f1 -d"/") >> $GITHUB_ENV
+
+      - name: '[Promote:Prep 2] Checkout'
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
+        uses: actions/checkout@v2
+
+      - name: '[Promote:Prep 3] Replace JFROG_CLI_BUILD_NAME'
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
+        run: echo JFROG_CLI_BUILD_NAME=${{ github.event.repository.name }}/${GITHUB_REF_NAME} >> $GITHUB_ENV
+
+      - name: '[Promote:Prep 4] Convert release json template then print'
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
+        run: |
+          sed -e "s#{ZOWE_ARTIFACT_DIR}#${{ env.ZOWE_ART_DIR }}#g" \
+            zowe-release-v3-template.json > zowe-release-v3.json
+          echo "Current zowe-release-v3.json is:"
+          cat zowe-release-v3.json
+          echo ZOWE_RELEASE_JSON=zowe-release-v3.json >> $GITHUB_ENV
+
+      - name: '[Promote:Prep 5] Create various folders for later steps to use'
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
+        run: |
+          # create folders under root project dir
+          mkdir ${{ env.LOCAL_RELEASE_FOLDER }}
+
+      - name: '[Promote:Validate 1] Validate zowe artifacts'
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
+        id: validate
+        uses: ./validate
+        with:
+          build-name: zowe-install-packaging/v3.x/staging
+          build-num: ${{ steps.call-build.outputs.workflow-run-num }}
+          release-version: nightly-v3
+          validate-artifactory-folder: false
+          validate-release-ver-tag: false
+          validate-commit-hash: false
+          validate-smpe-promote-tar: false
+          validate-docker-amd64: false
+          validate-docker-amd64-sources: false
+          validate-docker-s390x: false
+          validate-docker-s390x-sources: false
+          validate-cli-python-sdk: false
+          validate-cli-nodejs-sdk: false
+          validate-cli-nodejs-sdk-typedoc: false
+          validate-pswi: false
+
+      # Above step 'Validate' will generate a file (name is stored in its outputs.PROMOTE_JSON_FILE_NAME_FULL)
+      # file name is: promote-artifacts.json
+      # this can be used in many later step: promote
+
+      - name: '[Promote:Validate 2] Print promote-artifacts.json'
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
+        run: cat ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
+
+      - name: '[Promote:Promote 1] Promote (jfrog rt copy)'
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
+        timeout-minutes: 10
+        id: promote
+        uses: ./promote
+        with:
+          promote-json-file-name-full: ${{ steps.validate.outputs.PROMOTE_JSON_FILE_NAME_FULL }}
+          release-version: nightly/v3
+      
+      # promote step above will also create a release artifacts download spec file for next message step to consume
+      # file name is stored in its outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE
+      # file name will be: release-artifacts-download-spec.json
+
+      - name: '[Promote:Promote 2] Print release-artifacts-download-spec.json'
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
+        run: cat ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }}
+
+      - name: '[Promote:Message] Make slack message'
+        if: ${{ github.event.inputs.skip-promote != 'true' }}
+        timeout-minutes: 2
+        id: message
+        uses: ./message
+        with:
+          release-artifact-download-file: ${{ steps.promote.outputs.RELEASE_ARTIFACTS_DOWNLOAD_SPEC_FILE }}
+          release-version: nightly-v3
+          build-num: ${{ steps.call-build.outputs.workflow-run-num }}
+
+      #============================================================================
+
+      - name: '[Test 1] Determine what sets of tests to run'
+        if: ${{ github.event.inputs.skip-test != 'true' }}
+        run: |
+          DAYOFWEEK=$(date +"%a")
+          if [[ "$DAYOFWEEK" == 'Sat' ]] || [[ "$DAYOFWEEK" == 'Wed' ]] ; then
+            echo INSTALL_TEST="Zowe Release Tests" >> $GITHUB_ENV
+          else
+            echo INSTALL_TEST="Zowe Nightly Tests" >> $GITHUB_ENV
+          fi
+      
+      - name: '[Test 2] Call test workflow'
+        uses: zowe-actions/shared-actions/workflow-remote-call-wait@main
+        if: ${{ github.event.inputs.skip-test != 'true' }}
+        id: call-test
+        with:
+          github-token: ${{ secrets.ZOWE_ROBOT_TOKEN }}
+          owner: zowe
+          repo: zowe-install-packaging
+          workflow-filename: cicd-test.yml
+          branch-name: v3.x/staging
+          poll-frequency: 10
+          inputs-json-string: '{"install-test":"${{ env.INSTALL_TEST }}","custom-zowe-artifactory-pattern-or-build-number":"${{ steps.call-build.outputs.workflow-run-num }}"}'
+        # env:
+        #   DEBUG: zowe-actions:shared-actions:workflow-remote-call-wait
+          
+      - name: '[Test 3] Report test failure if applied'
+        if: ${{ steps.call-test.outputs.workflow-run-conclusion != 'success' && github.event.inputs.skip-test != 'true' }}
+        uses: actions/github-script@v5
+        with:
+          script: |
+            core.setFailed('Test workflow ${{ steps.call-test.outputs.workflow-run-num }} is not successful')
+
+      #============================================================================
+
+      - name: '[Message 1] prepare slack message body'
+        if: always()
+        run: | 
+          echo TODAYS_DATE=$(date +'%m/%d/%Y') >> $GITHUB_ENV
+
+          echo STAGING_VER=$(jfrog rt search \
+          --sort-by=created --sort-order=desc --limit=1 \
+          "libs-snapshot-local/org/zowe/*/zowe-3*pax" \
+          | jq -r ".[].path" \
+          | sed "s#libs-snapshot-local/org/zowe/##g" \
+          | cut -f1 -d"/" \
+          | cut -f1 -d"-") \
+          >> $GITHUB_ENV
+
+      - name: '[Message 2] Send slack message'
+        uses: slackapi/slack-github-action@v1.18.0
+        if: always()
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        with:
+          channel-id: ${{ secrets.ZOWE_BUILD_CHANNEL_ID }}
+          payload: |
+            {
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "Zowe Nightly Pipeline Daily Report"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Version:*\n ${{ env.STAGING_VER }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Date:*\n ${{ env.TODAYS_DATE }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Build*"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "Result: ${{ steps.call-build.outputs.workflow-run-conclusion || 'failed' }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Build Workflow Log"
+                      },
+                      "url": "${{ steps.call-build.outputs.workflow-run-html-url || 'https://www.github.com/404' }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Test*"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "Result: ${{ steps.call-test.outputs.workflow-run-conclusion || 'test is still running, or skipped' }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": {
+                        "type": "plain_text",
+                        "text": "Test Workflow Log"
+                      },
+                      "url": "${{ steps.call-test.outputs.workflow-run-html-url || env.html_url || 'https://www.github.com/404' }}"
+                    }
+                  ]
+                },
+                {
+                  "type": "divider"
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Promoted Artifacts*"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ steps.message.outputs.slack-message || 'No artifacts getting promoted.' }}"
+                  }
+                }
+              ]
+            }
