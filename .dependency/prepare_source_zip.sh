@@ -14,6 +14,7 @@
 #######################################################################
 # Generate Zowe source zip file
 #######################################################################
+set -x
 
 ################################################################################
 # contants
@@ -113,12 +114,12 @@ for repo in $ZOWE_SOURCE_DEPENDENCIES; do
   fi
   echo "[${SCRIPT_NAME}]   - found $REPO_HASH"
   REPO_HASH_SHORT=$(echo $REPO_HASH | cut -c 1-8)
-  /bin/sh -c "curl -s ${GITHUB_AUTH_HEADER} \"https://codeload.github.com/zowe/${REPO_NAME}/zip/${REPO_HASH_SHORT}\" --output \"${ZIP_DIR}/zowe-${REPO_NAME}-${REPO_TAG}-${REPO_HASH_SHORT}.zip\""
+  /bin/sh -c "curl -s ${GITHUB_AUTH_HEADER} \"https://codeload.github.com/zowe/${REPO_NAME}/zip/${REPO_HASH_SHORT}\" --output \"${ZIP_DIR}/zowe-${REPO_NAME}-${REPO_HASH_SHORT}.zip\""
   if [ "$?" != "0" ]; then
     echo "[${SCRIPT_NAME}]   - [ERROR] failed to download source."
     exit 1
   else
-    echo "[${SCRIPT_NAME}]   - zowe-${REPO_NAME}-${REPO_TAG}-${REPO_HASH_SHORT}.zip downloaded"
+    echo "[${SCRIPT_NAME}]   - zowe-${REPO_NAME}-${REPO_HASH_SHORT}.zip downloaded"
   fi
   sleep 2
 done
