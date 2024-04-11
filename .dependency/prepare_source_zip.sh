@@ -104,8 +104,11 @@ for repo in $ZOWE_SOURCE_DEPENDENCIES; do
     fi
   fi
   if [ "$REPO_HASH" = "null" ]; then
-    echo "[${SCRIPT_NAME}]   - [ERROR] failed to find tag hash, hash found as null"
-    exit 1
+    REPO_HASH=$(/bin/sh -c "curl -s ${GITHUB_AUTH_HEADER} \"https://api.github.com/repos/zowe/${REPO_NAME}/git/refs/heads/${REPO_TAG}\"" | jq -r '.object.sha')
+    if [ "$REPO_HASH" = "null" ]; then
+      echo "[${SCRIPT_NAME}]   - [ERROR] failed to find tag hash, hash found as null"
+      exit 1
+    fi
   fi
   echo "[${SCRIPT_NAME}]   - found $REPO_HASH"
   REPO_HASH_SHORT=$(echo $REPO_HASH | cut -c 1-8)
