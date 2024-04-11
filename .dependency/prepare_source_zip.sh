@@ -51,7 +51,7 @@ echo
 
 ################################################################################
 echo "[${SCRIPT_NAME}] download manifest.json"
-/bin/sh -c "curl -s ${GITHUB_AUTH_HEADER} \"${ZOWE_MANIFEST}\"" > "${WORK_DIR}/manifest.json.template"
+/bin/sh -c "curl -s ${GITHUB_AUTH_HEADER} \"${ZOWE_MANIFEST}\"" >"${WORK_DIR}/manifest.json.template"
 if [ -f "${WORK_DIR}/manifest.json.template" ]; then
   echo "[${SCRIPT_NAME}] - ${WORK_DIR}/manifest.json.template downloaded"
 else
@@ -67,7 +67,7 @@ echo
 
 ################################################################################
 echo "[${SCRIPT_NAME}] write README.md"
-cat > "${ZIP_DIR}/README.md" << EOF
+cat >"${ZIP_DIR}/README.md" <<EOF
 # Source files for the Zowe project - version ${ZOWE_VERSION}
 
 Included in this zip file are the source files used to build the Zowe ${ZOWE_VERSION} Release.
@@ -95,8 +95,13 @@ for repo in $ZOWE_SOURCE_DEPENDENCIES; do
   REPO_HASH=$(/bin/sh -c "curl -s ${GITHUB_AUTH_HEADER} \"https://api.github.com/repos/zowe/${REPO_NAME}/git/refs/tags/${REPO_TAG}\"" | jq -r '.object.sha')
   EXIT_CODE=$?
   if [ "$EXIT_CODE" != "0" ]; then
-    echo "[${SCRIPT_NAME}]   - [ERROR] failed to find tag hash, exit with ${EXIT_CODE}"
-    exit 1
+    echo "[${SCRIPT_NAME}]   - [WARN] failed to find repo tag, try head instead"
+    REPO_HASH=$(/bin/sh -c "curl -s ${GITHUB_AUTH_HEADER} \"https://api.github.com/repos/zowe/${REPO_NAME}/git/refs/heads/${REPO_TAG}\"" | jq -r '.object.sha')
+    EXIT_CODE=$?
+    if [ "$EXIT_CODE" != "0" ]; then
+      echo "[${SCRIPT_NAME}]  - [ERROR] could not find ${REPO_NAME} repo tag or head. exit with ${EXIT_CODE}"
+      exit 1
+    fi
   fi
   if [ "$REPO_HASH" = "null" ]; then
     echo "[${SCRIPT_NAME}]   - [ERROR] failed to find tag hash, hash found as null"
