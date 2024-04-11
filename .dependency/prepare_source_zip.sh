@@ -104,6 +104,7 @@ for repo in $ZOWE_SOURCE_DEPENDENCIES; do
     fi
   fi
   if [ "$REPO_HASH" = "null" ]; then
+    echo "[${SCRIPT_NAME}]   - [WARN] failed to find repo tag, try head instead"
     REPO_HASH=$(/bin/sh -c "curl -s ${GITHUB_AUTH_HEADER} \"https://api.github.com/repos/zowe/${REPO_NAME}/git/refs/heads/${REPO_TAG}\"" | jq -r '.object.sha')
     if [ "$REPO_HASH" = "null" ]; then
       echo "[${SCRIPT_NAME}]   - [ERROR] failed to find tag hash, hash found as null"
@@ -112,7 +113,7 @@ for repo in $ZOWE_SOURCE_DEPENDENCIES; do
   fi
   echo "[${SCRIPT_NAME}]   - found $REPO_HASH"
   REPO_HASH_SHORT=$(echo $REPO_HASH | cut -c 1-8)
-  /bin/sh -c "curl -s ${GITHUB_AUTH_HEADER} \"https://codeload.github.com/zowe/${REPO_NAME}/zip/${REPO_TAG}\" --output \"${ZIP_DIR}/zowe-${REPO_NAME}-${REPO_TAG}-${REPO_HASH_SHORT}.zip\""
+  /bin/sh -c "curl -s ${GITHUB_AUTH_HEADER} \"https://codeload.github.com/zowe/${REPO_NAME}/zip/${REPO_HASH_SHORT}\" --output \"${ZIP_DIR}/zowe-${REPO_NAME}-${REPO_TAG}-${REPO_HASH_SHORT}.zip\""
   if [ "$?" != "0" ]; then
     echo "[${SCRIPT_NAME}]   - [ERROR] failed to download source."
     exit 1
