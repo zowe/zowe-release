@@ -1,8 +1,8 @@
 name: Zowe Nightly Pipeline for v2
 on:
   schedule:
-    # this sets to 7.10am everyday UTC time, 3.10am EST
-    - cron: '10 7 * * *'
+    # this sets to 4.10am everyday UTC time, 12.10am EST
+    - cron: '10 4 * * *'
   workflow_dispatch:
     inputs:
       skip-promote:
@@ -145,7 +145,7 @@ jobs:
         if: ${{ github.event.inputs.skip-test != 'true' }}
         run: |
           DAYOFWEEK=$(date +"%a")
-          if [[ "$DAYOFWEEK" == 'Sat' ]] || [[ "$DAYOFWEEK" == 'Wed' ]] ; then
+          if [[ "$DAYOFWEEK" == 'Sun' ]] || [[ "$DAYOFWEEK" == 'Thu' ]] ; then
             echo INSTALL_TEST="Zowe Release Tests" >> $GITHUB_ENV
           else
             echo INSTALL_TEST="Zowe Nightly Tests" >> $GITHUB_ENV
