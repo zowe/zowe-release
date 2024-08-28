@@ -40,7 +40,7 @@ jobs:
           workflow-filename: build-packaging.yml
           branch-name: v3.x/staging
           poll-frequency: 3
-          inputs-json-string: '{"BUILD_SMPE":"true","BUILD_PSWI":"false","BUILD_KUBERNETES":"true","KEEP_TEMP_PAX_FOLDER":"false"}'
+          inputs-json-string: '{"BUILD_SMPE":"true","BUILD_PSWI":"true","BUILD_KUBERNETES":"true","KEEP_TEMP_PAX_FOLDER":"false"}'
         env:
           DEBUG: zowe-actions:shared-actions:workflow-remote-call-wait
 
