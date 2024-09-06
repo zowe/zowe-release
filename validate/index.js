@@ -217,7 +217,7 @@ if (validateSMPE) {
                 releaseArtifacts['smpe-source-bundle'] = {}
                 releaseArtifacts['smpe-source-bundle']['source'] = smpeZipSourceBundle
                 if (realPromote) {
-                    releaseArtifacts['smpe-source-bundle']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-smpe-*.zip.bundle'].replace(/\*/g, releaseVersion)
+                    releaseArtifacts['smpe-source-bundle']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-smpe-*.zip.bundle'].replace(/\*/g, 'package-'+releaseVersion)
                 } else {
                     releaseArtifacts['smpe-source-bundle']['target'] = smpeZipSourceBundle['path'].split("/").pop() //pop returns last item in array, ie. part after last slash
                 }
