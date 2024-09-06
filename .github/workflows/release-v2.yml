@@ -33,7 +33,7 @@ env:
   ZOWE_INSTALL_PACKAGING_OWNER: zowe
   ZOWE_INSTALL_PACKAGING_REPO: zowe-install-packaging
   STAGING_BRANCH: v2.x/staging
-  CORRECT_NUM_OF_RELEASE_ARTIFACTS: 9
+  CORRECT_NUM_OF_RELEASE_ARTIFACTS: 14
   CORRECT_NUM_OF_SIGNED_ARTIFACTS: 20
   LOCAL_RELEASE_FOLDER: .release
   TAG_DIR: .tag
@@ -143,6 +143,14 @@ jobs:
           export GITHUB_PASSWORD=${{ secrets.ZOWE_ROBOT_TOKEN }}
           ./.dependency/prepare_source_zip.sh
           zip -r ${{ env.LOCAL_RELEASE_FOLDER }}/zowe_sources-${{ github.event.inputs.zowe-release-version }}.zip ${{ env.LOCAL_RELEASE_FOLDER }}/source_zip
+
+      - name: '[Source - formal release only] Sign source zip'
+        timeout-minutes: 10
+        if: env.IS_FORMAL_RELEASE == 'true'
+        uses: zowe-actions/shared-actions/sigstore-sign-artifacts@main
+        with:
+          artifacts: |
+            ${{ env.LOCAL_RELEASE_FOLDER }}/zowe_sources-${{ github.event.inputs.zowe-release-version }}.zip
 
       - name: '[Promote 1] Promote (jfrog rt copy)'
         timeout-minutes: 10
