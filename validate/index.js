@@ -9,6 +9,7 @@
  */
 
 const core = require('@actions/core')
+const semver = require('semver');
 const { github, utils } = require('zowe-common')
 const fs = require('fs')
 const Debug = require('debug')
@@ -72,7 +73,7 @@ else {
     // thanks semver/semver, this regular expression comes from
     // https://github.com/semver/semver/issues/232#issuecomment-405596809
     // in javascript regex \d means [0-9]; in bash you should do [0-9]
-    if (releaseVersion.match(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/)) {
+    if (semver.valid(releaseVersion)) {
         logValidate('YES')
     }
     else {
@@ -87,6 +88,8 @@ else {
         console.log(`>>>> Version ${releaseVersion} is NOT considered as a FORMAL RELEASE.`)
     }
 }
+
+var promoteBundles = semver.major(releaseVersion) > 3 || (semver.major(releaseVersion) === 2 && semver.minor(releaseVersion) >= 18);
 
 // init
 var zoweReleaseJsonFile = process.env.ZOWE_RELEASE_JSON
@@ -160,6 +163,26 @@ if (validatePax) {
         buildName,
         buildNum
     )
+
+    if (promoteBundles) {
+        var zowePaxBundle = searchArtifact(
+            `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-*.pax.bundle']}`,
+            buildName,
+            buildNum
+        )
+        if (zowePaxBundle['path']) {
+            releaseArtifacts['zowe-pax-bundle'] = {}
+            releaseArtifacts['zowe-pax-bundle']['source'] = zowePaxBundle
+            if (realPromote) {
+                releaseArtifacts['zowe-pax-bundle']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-*.pax.bundle'].replace(/\*/g, releaseVersion)
+            } else {
+                releaseArtifacts['zowe-pax-bundle']['target'] = zowePaxBundle['path'].split("/").pop() //pop returns last item in array, ie. part after last slash
+            }
+        } else {
+            throw new Error(`no zowe pax sigstore bundle found in the build`);
+        }
+    }
+ 
     if (zowePax['path']) {
         releaseArtifacts['zowe-pax'] = {}
         releaseArtifacts['zowe-pax']['source'] = zowePax
@@ -183,11 +206,32 @@ else {
 // get SMP/e build
 if (validateSMPE) {
     try {
+
+        if (promoteBundles) {
+            var smpeZipSourceBundle = searchArtifact(
+                `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-smpe-*.zip.bundle']}`,
+                buildName,
+                buildNum
+            )
+            if (smpeZipSourceBundle['path']) {
+                releaseArtifacts['smpe-source-bundle'] = {}
+                releaseArtifacts['smpe-source-bundle']['source'] = smpeZipSourceBundle
+                if (realPromote) {
+                    releaseArtifacts['smpe-source-bundle']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-smpe-*.zip.bundle'].replace(/\*/g, releaseVersion)
+                } else {
+                    releaseArtifacts['smpe-source-bundle']['target'] = smpeZipSourceBundle['path'].split("/").pop() //pop returns last item in array, ie. part after last slash
+                }
+            } else {
+                throw new Error(`no zowe-smpe zip sigstore bundle found in the build`);
+            }
+        }
+
         var smpeZipSource = searchArtifact(
             `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-smpe-*.zip']}`,
             buildName,
             buildNum
         )
+      
         if (smpeZipSource['path']) {
             releaseArtifacts['smpe-zip'] = {}
             releaseArtifacts['smpe-zip']['source'] = smpeZipSource
@@ -327,6 +371,26 @@ else {
 if (validateContainerization) {
     // get containerization
     try {
+
+        if (promoteBundles) {
+            var containerBundle = searchArtifact(
+                `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-containerization-*.zip.bundle']}`,
+                buildName,
+                buildNum
+            )
+            if (containerBundle['path']) {
+                releaseArtifacts['containerization-bundle'] = {}
+                releaseArtifacts['containerization-bundle']['source'] = containerBundle
+                if (realPromote) {
+                    releaseArtifacts['containerization-bundle']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-containerization-*.zip.bundle'].replace(/\*/g, releaseVersion)
+                }
+                else {
+                    releaseArtifacts['containerization-bundle']['target'] = containerBundle['path'].split('/').pop()
+                }
+                logValidate(`>>[validate 11/17]>> Found containerization version ${containerBundle['path']}.`)
+            }
+        }
+
         var containerization = searchArtifact(
             `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-containerization-*.zip']}`,
             buildName,
@@ -485,6 +549,19 @@ else {
 
 if (validatePswi) {
     try {
+
+        if (promoteBundles) {
+            var pswiBundle = searchArtifact(
+                `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-PSWI-*.pax.Z.bundle']}`
+            )
+            if (pswiBundle['path']) {
+                releaseArtifacts['pswi-bundle'] = {}
+                releaseArtifacts['pswi-bundle']['source'] = pswiBundle
+                releaseArtifacts['pswi-bundle']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-PSWI-*.pax.Z.bundle'].replace(/\*/g, releaseVersion)
+                logValidate(`>>[validate 17/17]>> Found PSWI ${releaseArtifacts['pswi-bundle']['source']['path']}.`)
+            }
+        }
+
         // get PSWI build artifacts
         var pswi = searchArtifact(
             `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-PSWI-*.pax.Z']}`

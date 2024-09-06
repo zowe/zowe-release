@@ -9,7 +9,6 @@
             "zowe-smpe-*.zip": "zowe-smpe-*.zip",
             "zowe-smpe-*.zip.bundle": "zowe-smpe-*.zip.bundle",
             "smpe-promote-*.tar": "smpe-promote-*.tar",
-            "smpe-promote-*.tar.bundle": "smpe-promote-*.tar.bundle",
             "server-bundle.amd64-*.tar": "server-bundle.amd64-*.tar",
             "server-bundle.sources.amd64-*.tar": "server-bundle.sources.amd64-*.tar",
             "server-bundle.s390x-*.tar": "server-bundle.s390x-*.tar",
