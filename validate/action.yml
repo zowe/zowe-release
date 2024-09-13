@@ -11,7 +11,7 @@ inputs:
     description: zowe release version
     required: true
   validate-artifactory-folder:
-    description: validate if artifactory folder exists already
+    description: validate if artifactory folder exists already and has non-license artifacts
     required: false
     default: 'true'
   validate-release-ver-tag:

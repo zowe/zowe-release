@@ -10720,7 +10720,10 @@ else {
     }
 }
 
-var promoteBundles = semver.major(releaseVersion) > 3 || (semver.major(releaseVersion) === 2 && semver.minor(releaseVersion) >= 18);
+var promoteBundles = null;
+if (realPromote) {
+    promoteBundles = semver.major(releaseVersion) > 3 || (semver.major(releaseVersion) === 2 && semver.minor(releaseVersion) >= 18);
+}
 
 // init
 var zoweReleaseJsonFile = process.env.ZOWE_RELEASE_JSON
@@ -10732,12 +10735,21 @@ var releaseFilesPattern = `${zoweReleaseJsonObject['zowe']['to']}/org/zowe/${rel
 if (validateArtifactoryFolder) {
     // check artifactory release pattern
     console.log(`Checking if ${releaseVersion} already exists in Artifactory ...`)
-    var searchResult = searchArtifact(releaseFilesPattern)
+    var searchResult = searchFolder(releaseFilesPattern)
     if (!searchResult || searchResult == null || searchResult == '') {
         logValidate(`>>[validate 1/17]>> Target artifactory folder ${releaseFilesPattern} doesn\'t exist.`)
     } 
     else {
-        throw new Error(`Zowe version ${releaseVersion} already exists (${releaseFilesPattern})`)
+        const sbomsOnly = searchResult.reduce((prev, curr) => {
+            const buildName = folderItem?.props["build.name"]
+            if (buildName && !buildName.startsWith('zowe-dependency-scan')) {
+                return prev && false;
+            } 
+            return prev && true;
+        });
+        if (!sbomsOnly) {
+            throw new Error(`Zowe version ${releaseVersion} already exists (${releaseFilesPattern})`)
+        }
     }
 } 
 else {
@@ -11248,6 +11260,19 @@ fs.writeFileSync(promoteJsonFileNameFull, JSON.stringify(releaseArtifacts, null,
 //       ]
 //     }
 //   }
+
+function searchFolder(pattern) {
+    var cmd = `jfrog rt search --sort-by=created --sort-order=desc ${pattern} | jq -r '.[]'`
+    debug(`searchFolder full command: ${cmd}`)
+    var out = utils.sh(cmd)
+    if (!out || out == null || out == '') {
+        return
+    }
+    else {
+        return JSON.parse(out)
+    }
+}
+
 function searchArtifact(pattern, buildName, buildNum) {
     if ((buildName == '' && buildNum != '') || (buildName != '' && buildNum == '')) {
         throw new Error('Function searchArtifact must have neither buildName or buildNum, or have both')
