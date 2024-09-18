@@ -104,7 +104,7 @@ var releaseFilesPattern = `${zoweReleaseJsonObject['zowe']['to']}/org/zowe/${rel
 if (validateArtifactoryFolder) {
     // check artifactory release pattern
     console.log(`Checking if ${releaseVersion} already exists in Artifactory ...`)
-    var searchResult = searchFolder(releaseFilesPattern)
+    var searchResult = searchReleaseFolder(releaseFilesPattern)
     if (!searchResult || searchResult == null || searchResult == '') {
         logValidate(`>>[validate 1/17]>> Target artifactory folder ${releaseFilesPattern} doesn\'t exist.`)
     } 
@@ -636,8 +636,8 @@ fs.writeFileSync(promoteJsonFileNameFull, JSON.stringify(releaseArtifacts, null,
 //     }
 //   }
 
-function searchFolder(pattern) {
-    var cmd = `jfrog rt search --sort-by=created --sort-order=desc ${pattern} | jq -r '.[]'`
+function searchReleaseFolder(pattern) {
+    var cmd = `jfrog rt search --sort-by=created --sort-order=desc --exclusions=*/sbom/* ${pattern} | jq -r '.[]'`
     debug(`searchFolder full command: ${cmd}`)
     var out = utils.sh(cmd)
     if (!out || out == null || out == '') {
