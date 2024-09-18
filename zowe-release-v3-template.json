@@ -5,14 +5,18 @@
         "sourcePath" : "org/zowe/{ZOWE_ARTIFACT_DIR}",
         "sourceFiles": {
             "zowe-*.pax": "zowe-*.pax",
+            "zowe-*.pax.bundle": "zowe-*.pax.bundle",
             "zowe-smpe-*.zip": "zowe-smpe-*.zip",
+            "zowe-smpe-*.zip.bundle": "zowe-smpe-*.zip.bundle",
             "smpe-promote-*.tar": "smpe-promote-*.tar",
             "server-bundle.amd64-*.tar": "server-bundle.amd64-*.tar",
             "server-bundle.sources.amd64-*.tar": "server-bundle.sources.amd64-*.tar",
             "server-bundle.s390x-*.tar": "server-bundle.s390x-*.tar",
             "server-bundle.sources.s390x-*.tar": "server-bundle.sources.s390x-*.tar",
             "zowe-containerization-*.zip": "zowe-containerization-*.zip",
-            "zowe-PSWI-*.pax.Z": "zowe-PSWI-*.pax.Z"
+            "zowe-containerization-*.zip.bundle": "zowe-containerization-*.zip.bundle",
+            "zowe-PSWI-*.pax.Z": "zowe-PSWI-*.pax.Z",
+            "zowe-PSWI-*.pax.Z.bundle": "zowe-PSWI-*.pax.Z.bundle"
         }
     },
 

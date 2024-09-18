@@ -581,7 +581,13 @@ if (validatePswi) {
         if (pswi['path']) {
             releaseArtifacts['pswi'] = {}
             releaseArtifacts['pswi']['source'] = pswi
-            releaseArtifacts['pswi']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-PSWI-*.pax.Z'].replace(/\*/g, releaseVersion)
+            if (realPromote) {
+                releaseArtifacts['pswi']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-PSWI-*.pax.Z'].replace(/\*/g, releaseVersion)
+
+            } else {
+                //nightly artifact does not alter its name, just use the name from staging jfrog folder
+                releaseArtifacts['pswi']['target'] = pswi['path'].split("/").pop() //pop returns last item in array, ie. part after last slash
+            }
             logValidate(`>>[validate 17/17]>> Found PSWI ${releaseArtifacts['pswi']['source']['path']}.`)
         }
     } 
