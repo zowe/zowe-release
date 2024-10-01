@@ -10904,7 +10904,17 @@ if (validateSMPEPromoteTar) {
             buildNum
         )
         logValidate(`>>[validate 6/17]>> Found SMP/e promote tar ${smpePromoteTar['path']}.`)
-        core.exportVariable('SMPE_PTF_PROMOTE_TAR_PATH', smpePromoteTar['path'])
+        if (smpePromoteTar['size'] > 0 ) {
+            core.exportVariable('SMPE_PTF_PROMOTE_TAR_PATH', smpePromoteTar['path'])
+        } else {
+            // this can be size 0 in the case of new major releases, 2.0.0, 3.0.0, 4.0.0, where it's OK to ignore it
+            if (semver.valid(releaseVersion) && semver.minor(releaseVersion) === 0 && semver.patch(releaseVersion) === 0) {
+                logValidate(`>>[validate 6/17]>> Ignoring empty SMP/e promote TAR due to new major version release.`)
+            }  else {
+                // we should never hit this branch, but if we do it's an error condition. This won't be hit for nightly builds.
+                throw new Error('Unexpected empty SMP/e promote TAR, and this is not a new major version release');
+            }
+        }
     } 
     catch (e2) {
         throw new Error(`no SMP/e promote tar found in the build`)
