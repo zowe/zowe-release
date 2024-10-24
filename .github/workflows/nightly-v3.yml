@@ -40,7 +40,7 @@ jobs:
           workflow-filename: build-packaging.yml
           branch-name: v3.x/staging
           poll-frequency: 3
-          inputs-json-string: '{"BUILD_SMPE":"true","BUILD_PSWI":"true","BUILD_KUBERNETES":"true","KEEP_TEMP_PAX_FOLDER":"false"}'
+          inputs-json-string: '{"BUILD_SMPE":"true","BUILD_PSWI":"false","BUILD_KUBERNETES":"true","KEEP_TEMP_PAX_FOLDER":"false"}'
         env:
           DEBUG: zowe-actions:shared-actions:workflow-remote-call-wait
 
@@ -102,7 +102,7 @@ jobs:
           validate-cli-python-sdk: false
           validate-cli-nodejs-sdk: false
           validate-cli-nodejs-sdk-typedoc: false
-          validate-pswi: true
+          validate-pswi: false
 
       # Above step 'Validate' will generate a file (name is stored in its outputs.PROMOTE_JSON_FILE_NAME_FULL)
       # file name is: promote-artifacts.json
