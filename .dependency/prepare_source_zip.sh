@@ -86,11 +86,17 @@ echo
 
 ################################################################################
 echo "[${SCRIPT_NAME}] download source code"
-ZOWE_SOURCE_DEPENDENCIES=$(jq -r '.sourceDependencies[] | .entries[] | .repository + "," + .tag' "${WORK_DIR}/manifest.json.template")
+ZOWE_SOURCE_DEPENDENCIES=$(jq -r '.sourceDependencies[] | .entries[] | .repository + "," + .tag + "," + ((if has("core") then .core else true end)|tostring)' "${WORK_DIR}/manifest.json.template")
 for repo in $ZOWE_SOURCE_DEPENDENCIES; do
   REPO_NAME=$(echo $repo | awk -F, '{print $1}')
   REPO_TAG=$(echo $repo | awk -F, '{print $2}')
-  echo "[${SCRIPT_NAME}] - $REPO_NAME $REPO_TAG"
+  REPO_CORE=$(echo $repo | awk -F, '{print $3}')
+  if [[ $REPO_CORE == "false" ]]; then
+    # skip over non-core sources for now, we may need to separate these into another zip later on
+    echo "Skipping non-core project $REPO_NAME:$REPO_TAG"
+    continue
+  fi
+  echo "[${SCRIPT_NAME}] - $REPO_NAME $REPO_TAG $REPO_CORE"
   echo "[${SCRIPT_NAME}]   - checking https://api.github.com/repos/zowe/${REPO_NAME}/git/refs/tags/${REPO_TAG}"
   REPO_HASH=$(/bin/sh -c "curl -s ${GITHUB_AUTH_HEADER} \"https://api.github.com/repos/zowe/${REPO_NAME}/git/refs/tags/${REPO_TAG}\"" | jq -r '.object.sha')
   EXIT_CODE=$?
