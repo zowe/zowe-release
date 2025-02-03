@@ -123,7 +123,7 @@ for repo in $ZOWE_SOURCE_DEPENDENCIES; do
       if [ "$REPO_HASH" = "null" ]; then
         echo "[${SCRIPT_NAME}]   - [ERROR] failed to find tag hash, hash found as null"
         exit 1
-      
+      fi
     fi
   fi
   echo "[${SCRIPT_NAME}]   - found $REPO_HASH"
