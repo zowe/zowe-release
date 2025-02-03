@@ -106,7 +106,7 @@ for repo in $ZOWE_SOURCE_DEPENDENCIES; do
     EXIT_CODE=$?
     if [ "$EXIT_CODE" != "0" ]; then
       echo "[${SCRIPT_NAME}]   - [WARN] failed to find repo via head, try commit last"
-      REPO_HASH=$(/bin/sh -c "curl -s ${GITHUB_AUTH_HEADER} \"https://api.github.com/repos/zowe/${REPO_NAME}/commits/${REPO_TAG}\"" | jq -r '.object.sha')
+      REPO_HASH=$(/bin/sh -c "curl -s ${GITHUB_AUTH_HEADER} \"https://api.github.com/repos/zowe/${REPO_NAME}/commits/${REPO_TAG}\"" | jq -r '.sha')
       EXIT_CODE=$?
       if [ "$EXIT_CODE" != "0" ]; then
         echo "[${SCRIPT_NAME}]  - [ERROR] could not find ${REPO_NAME} repo tag or head. exit with ${EXIT_CODE}"
@@ -119,11 +119,11 @@ for repo in $ZOWE_SOURCE_DEPENDENCIES; do
     REPO_HASH=$(/bin/sh -c "curl -s ${GITHUB_AUTH_HEADER} \"https://api.github.com/repos/zowe/${REPO_NAME}/git/refs/heads/${REPO_TAG}\"" | jq -r '.object.sha')
     if [ "$REPO_HASH" = "null" ]; then
       echo "[${SCRIPT_NAME}]   - [WARN] failed to find repo via head, try commit last"
-      REPO_HASH=$(/bin/sh -c "curl -s ${GITHUB_AUTH_HEADER} \"https://api.github.com/repos/zowe/${REPO_NAME}/commits/${REPO_TAG}\"" | jq -r '.object.sha')
+      REPO_HASH=$(/bin/sh -c "curl -s ${GITHUB_AUTH_HEADER} \"https://api.github.com/repos/zowe/${REPO_NAME}/commits/${REPO_TAG}\"" | jq -r '.sha')
       if [ "$REPO_HASH" = "null" ]; then
         echo "[${SCRIPT_NAME}]   - [ERROR] failed to find tag hash, hash found as null"
         exit 1
-      fi
+      
     fi
   fi
   echo "[${SCRIPT_NAME}]   - found $REPO_HASH"
