@@ -91,7 +91,7 @@ for repo in $ZOWE_SOURCE_DEPENDENCIES; do
   REPO_NAME=$(echo $repo | awk -F, '{print $1}')
   REPO_TAG=$(echo $repo | awk -F, '{print $2}')
   REPO_CORE=$(echo $repo | awk -F, '{print $3}')
-  if [[ $REPO_CORE == "false" ]]; then
+  if [ "$REPO_CORE" == "false" ]; then
     # skip over non-core sources for now, we may need to separate these into another zip later on
     echo "Skipping non-core project $REPO_NAME:$REPO_TAG"
     continue
