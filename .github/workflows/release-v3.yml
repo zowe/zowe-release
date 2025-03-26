@@ -1,4 +1,8 @@
 name: Zowe Release v3
+
+permissions:
+  id-token: write
+
 on:   
   workflow_dispatch:
     inputs:
@@ -267,7 +271,7 @@ jobs:
           git push origin "v$zowe_release_version"
 
       - name: '[Promote PTF 1 - formal release only!] Clone staging branch'
-        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' }}
+        if: ${{ env.IS_FORMAL_RELEASE == 'true' && env.SMPE_PTF_PROMOTE_TAR_PATH != '' && env.IS_PTF_RELEASE}}
         uses: actions/checkout@v2
         with:
           repository: ${{ env.ZOWE_INSTALL_PACKAGING_OWNER }}/${{ env.ZOWE_INSTALL_PACKAGING_REPO }}
