@@ -1,4 +1,8 @@
 name: Zowe Release v2
+
+permissions:
+  id-token: write
+
 on:   
   workflow_dispatch:
     inputs:
@@ -149,6 +153,7 @@ jobs:
         if: env.IS_FORMAL_RELEASE == 'true'
         uses: zowe-actions/shared-actions/sigstore-sign-artifacts@main
         with:
+          output_path: ${{ env.LOCAL_RELEASE_FOLDER }}
           artifacts: |
             ${{ env.LOCAL_RELEASE_FOLDER }}/zowe_sources-${{ github.event.inputs.zowe-release-version }}.zip
 
