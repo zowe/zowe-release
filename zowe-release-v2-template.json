@@ -27,7 +27,9 @@
         "sourcePath" : "org/zowe/cli",
         "sourceFiles": {
             "zowe-cli-package-*.zip": "zowe-cli-package-2*.zip",
-            "zowe-cli-plugins-*.zip": "zowe-cli-plugins-2*.zip"
+            "zowe-cli-package-*.zip.bundle": "zowe-cli-package-2*.zip.bundle",
+            "zowe-cli-plugins-*.zip": "zowe-cli-plugins-2*.zip",
+            "zowe-cli-plugins-*.zip.bundle": "zowe-cli-plugins-2*.zip.bundle"     
         }
     },
 
@@ -37,8 +39,11 @@
         "sourcePath" : "org/zowe/sdk",
         "sourceFiles": {
             "zowe-python-sdk-*.zip": "zowe-python-sdk-2*.zip",
+            "zowe-python-sdk-*.zip.bundle": "zowe-python-sdk-2*.zip.bundle",
             "zowe-nodejs-sdk-*.zip": "zowe-nodejs-sdk-2*.zip",
-            "zowe-nodejs-sdk-typedoc-*.zip": "zowe-nodejs-sdk-typedoc-2*.zip"
+            "zowe-nodejs-sdk-*.zip.bundle": "zowe-nodejs-sdk-2*.zip.bundle",
+            "zowe-nodejs-sdk-typedoc-*.zip": "zowe-nodejs-sdk-typedoc-2*.zip",
+            "zowe-nodejs-sdk-typedoc-*.zip.bundle": "zowe-nodejs-sdk-typedoc-2*.zip.bundle"
         }
     }
 }

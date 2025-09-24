@@ -91,7 +91,7 @@ else {
 
 var promoteBundles = null;
 if (realPromote) {
-    promoteBundles = semver.major(releaseVersion) > 3 || (semver.major(releaseVersion) === 2 && semver.minor(releaseVersion) >= 18);
+    promoteBundles = true; // all new releases (>3.x, 2.18.x) have bundles
 }
 
 // init
@@ -177,22 +177,7 @@ if (validatePax) {
     )
 
     if (promoteBundles) {
-        var zowePaxBundle = searchArtifact(
-            `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-*.pax.bundle']}`,
-            buildName,
-            buildNum
-        )
-        if (zowePaxBundle['path']) {
-            releaseArtifacts['zowe-pax-bundle'] = {}
-            releaseArtifacts['zowe-pax-bundle']['source'] = zowePaxBundle
-            if (realPromote) {
-                releaseArtifacts['zowe-pax-bundle']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-*.pax.bundle'].replace(/\*/g, releaseVersion)
-            } else {
-                releaseArtifacts['zowe-pax-bundle']['target'] = zowePaxBundle['path'].split("/").pop() //pop returns last item in array, ie. part after last slash
-            }
-        } else {
-            throw new Error(`no zowe pax sigstore bundle found in the build`);
-        }
+        promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'zowe-pax-bundle', 'zowe-*.pax.bundle');
     }
  
     if (zowePax['path']) {
@@ -220,22 +205,7 @@ if (validateSMPE) {
     try {
 
         if (promoteBundles) {
-            var smpeZipSourceBundle = searchArtifact(
-                `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-smpe-*.zip.bundle']}`,
-                buildName,
-                buildNum
-            )
-            if (smpeZipSourceBundle['path']) {
-                releaseArtifacts['smpe-source-bundle'] = {}
-                releaseArtifacts['smpe-source-bundle']['source'] = smpeZipSourceBundle
-                if (realPromote) {
-                    releaseArtifacts['smpe-source-bundle']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-smpe-*.zip.bundle'].replace(/\*/g, 'package-'+releaseVersion)
-                } else {
-                    releaseArtifacts['smpe-source-bundle']['target'] = smpeZipSourceBundle['path'].split("/").pop() //pop returns last item in array, ie. part after last slash
-                }
-            } else {
-                throw new Error(`no zowe-smpe zip sigstore bundle found in the build`);
-            }
+            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'smpe-source-bundle', 'zowe-smpe-*.zip.bundle');
         }
 
         var smpeZipSource = searchArtifact(
@@ -395,22 +365,7 @@ if (validateContainerization) {
     try {
 
         if (promoteBundles) {
-            var containerBundle = searchArtifact(
-                `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-containerization-*.zip.bundle']}`,
-                buildName,
-                buildNum
-            )
-            if (containerBundle['path']) {
-                releaseArtifacts['containerization-bundle'] = {}
-                releaseArtifacts['containerization-bundle']['source'] = containerBundle
-                if (realPromote) {
-                    releaseArtifacts['containerization-bundle']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-containerization-*.zip.bundle'].replace(/\*/g, releaseVersion)
-                }
-                else {
-                    releaseArtifacts['containerization-bundle']['target'] = containerBundle['path'].split('/').pop()
-                }
-                logValidate(`>>[validate 11/17]>> Found containerization version ${containerBundle['path']}.`)
-            }
+            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'containerization-bundle', 'zowe-containerization-*.zip.bundle');
         }
 
         var containerization = searchArtifact(
@@ -441,6 +396,11 @@ else {
 if (validateCLIPackage) {
     // get CLI CORE build source artifact
     try {
+
+        if (promoteBundles) {
+            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'zowe-cli-package-bundle', 'zowe-cli-package-*.zip.bundle');
+        }
+
         var cliPackages
         if (realPromote) {
             cliPackages = searchArtifact(
@@ -475,6 +435,10 @@ else {
 if (validateCLIPlugins) {
     // get CLI PLUGINS builds source artifact
     try {
+        if (promoteBundles) {
+            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'zowe-cli-plugins-bundle', 'zowe-cli-plugins-*.zip.bundle');
+        }
+
         var cliPlugins
         if (realPromote) {
             cliPlugins = searchArtifact(
@@ -508,6 +472,10 @@ else {
 
 if (validateCLIPythonSDK) {
     try {
+        if (promoteBundles) {
+            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'cli-python-sdk-bundle', 'zowe-python-sdk-*.zip.bundle');
+        }
+
         // get CLI python sdk build artifacts
         var cliPythonSDK = searchArtifact(
             `${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-python-sdk-*.zip']}`
@@ -529,6 +497,11 @@ else {
 
 if (validateCLINodejsSDK) {
     try {
+
+        if (promoteBundles) {
+            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'cli-nodejs-sdk-bundle', 'zowe-nodejs-sdk-*.zip.bundle');
+        }
+
         // get CLI nodejs sdk build artifacts
         var cliNodejsSDK = searchArtifact(
             `${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-*.zip']}`
@@ -550,6 +523,11 @@ else {
 
 if (validateCLINodejsSDKTypedoc) {
     try {
+
+        if (promoteBundles) {
+            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'cli-nodejs-sdk-typedoc-bundle', 'zowe-nodejs-sdk-typedoc-*.zip');
+        }
+
         // get CLI nodejs sdk typedoc build artifacts
         var cliNodejsSDKTypedoc = searchArtifact(
             `${zoweReleaseJsonObject['zowe-cli-sdk']['from']}/${zoweReleaseJsonObject['zowe-cli-sdk']['sourcePath']}/*/${zoweReleaseJsonObject['zowe-cli-sdk']['sourceFiles']['zowe-nodejs-sdk-typedoc-*.zip']}`
@@ -573,15 +551,7 @@ if (validatePswi) {
     try {
 
         if (promoteBundles) {
-            var pswiBundle = searchArtifact(
-                `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-PSWI-*.pax.Z.bundle']}`
-            )
-            if (pswiBundle['path']) {
-                releaseArtifacts['pswi-bundle'] = {}
-                releaseArtifacts['pswi-bundle']['source'] = pswiBundle
-                releaseArtifacts['pswi-bundle']['target'] = zoweReleaseJsonObject['zowe']['sourceFiles']['zowe-PSWI-*.pax.Z.bundle'].replace(/\*/g, releaseVersion)
-                logValidate(`>>[validate 17/17]>> Found PSWI ${releaseArtifacts['pswi-bundle']['source']['path']}.`)
-            }
+            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'pswi-bundle', 'zowe-PSWI-*.pax.Z.bundle');
         }
 
         // get PSWI build artifacts
@@ -687,4 +657,23 @@ function logValidate(msg) {
 
 function logSkipValidate(msg) {
     console.log('\x1b[33m%s\x1b[0m', msg)
+}
+
+function promoteBundle(zoweReleaseJsonObject, releaseArtifacts, bundleId, bundleName) {
+    var zowePaxBundle = searchArtifact(
+        `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles'][bundleName]}`,
+        buildName,
+        buildNum
+    )
+    if (zowePaxBundle['path']) {
+        releaseArtifacts[bundleId] = {}
+        releaseArtifacts[bundleId]['source'] = zowePaxBundle
+        if (realPromote) {
+            releaseArtifacts[bundleId]['target'] = zoweReleaseJsonObject['zowe']['sourceFiles'][bundleName].replace(/\*/g, releaseVersion)
+        } else {
+            releaseArtifacts[bundleId]['target'] = zowePaxBundle['path'].split("/").pop() //pop returns last item in array, ie. part after last slash
+        }
+    } else {
+        throw new Error(`Missing sigstore bundle for ${bundleId} : ${bundleName}`);
+    }
 }
