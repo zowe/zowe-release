@@ -37,6 +37,9 @@ env:
   ZOWE_INSTALL_PACKAGING_OWNER: zowe
   ZOWE_INSTALL_PACKAGING_REPO: zowe-install-packaging
   STAGING_BRANCH: v2.x/staging
+  # There is an issue acquiring CLI .bundle signatures right now. 
+  # If fixed, this should be 13 RELEASE_ARTIFACTS, 28 signed.
+  #  You can move .bundle files manually in jfrog over from the cli staging area to final release
   CORRECT_NUM_OF_RELEASE_ARTIFACTS: 9
   CORRECT_NUM_OF_SIGNED_ARTIFACTS: 20
   LOCAL_RELEASE_FOLDER: .release
