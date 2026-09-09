@@ -16,6 +16,9 @@
     "url": "https://github.com/zowe/zowe-release/issues"
   },
   "homepage": "https://github.com/zowe/zowe-release#readme",
+  "devDependencies": {
+    "@vercel/ncc": "^0.36.1"
+  },
   "dependencies": {
     "@actions/core": "^1.6.0",
     "@actions/github": "^5.0.0",

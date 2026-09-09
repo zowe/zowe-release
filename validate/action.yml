@@ -3,10 +3,12 @@ description: "Validate zowe artifacts"
 inputs:
   build-name:
     description: build-name
-    required: true
+    required: false
+    default: ''
   build-num:
     description: build-number
-    required: true
+    required: false
+    default: ''
   release-version:
     description: zowe release version
     required: true

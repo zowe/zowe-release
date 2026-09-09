@@ -18,12 +18,11 @@ const urlPrefix = 'https://zowe.jfrog.io/zowe/'
 // Gets inputs
 var releaseArtifactDownloadFile = core.getInput('release-artifact-download-file')
 var releaseVersion = core.getInput('release-version')
-var buildNum = core.getInput('build-num')
+var buildNum = core.getInput('build-num') || 'N/A'
 
 //mandatory check
 utils.mandatoryInputCheck(releaseArtifactDownloadFile, 'release-artifact-download-file')
 utils.mandatoryInputCheck(releaseVersion, 'release-version')
-utils.mandatoryInputCheck(buildNum, 'build-num')
 
 // init
 var nightly = false
@@ -33,8 +32,13 @@ if (releaseVersion.includes('nightly')) {
 var releaseArtifactJsonObject = JSON.parse(fs.readFileSync(releaseArtifactDownloadFile))
 var message = []
 var slackMessage = []
+
+var headerMsg = buildNum && buildNum !== 'N/A'
+    ? `Build ${buildNum} is promoted as Zowe ${releaseVersion}, you can download from below:`
+    : `Zowe ${releaseVersion} artifacts are promoted, you can download from below:`;
+
 message.push(`*************************************************************************************************
-Build ${buildNum} is promoted as Zowe ${releaseVersion}, you can download from below:
+${headerMsg}
 `)
 
 releaseArtifactJsonObject.files.forEach(function(obj) { 
@@ -80,6 +84,18 @@ releaseArtifactJsonObject.files.forEach(function(obj) {
         else {
             slackMessage.push(`CLI Plugins Package: ${urlPrefix}${pattern}`)
         }
+    }
+    else if(pattern.includes('zowe-python-sdk') && pattern.endsWith('zip')) {
+        message.push(`Python SDK: ${urlPrefix}${pattern}`)
+        slackMessage.push(`Python SDK: ${urlPrefix}${pattern}`)
+    }
+    else if(pattern.includes('zowe-nodejs-sdk-typedoc') && pattern.endsWith('zip')) {
+        message.push(`NodeJS SDK TypeDoc: ${urlPrefix}${pattern}`)
+        slackMessage.push(`NodeJS SDK TypeDoc: ${urlPrefix}${pattern}`)
+    }
+    else if(pattern.includes('zowe-nodejs-sdk') && pattern.endsWith('zip')) {
+        message.push(`NodeJS SDK: ${urlPrefix}${pattern}`)
+        slackMessage.push(`NodeJS SDK: ${urlPrefix}${pattern}`)
     }
 })
 message.push(`

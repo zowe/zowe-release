@@ -41,8 +41,11 @@ var validateCLINodejsSDKTypedoc = core.getBooleanInput('validate-cli-nodejs-sdk-
 var validatePswi = core.getBooleanInput('validate-pswi')
 
 //mandatory check
-utils.mandatoryInputCheck(buildName, 'build-name')
-utils.mandatoryInputCheck(buildNum, 'build-num')
+const needBuildInfo = validateCommitHash || validatePax || validateSMPE || validateSMPEPromoteTar || validateDockerAmd64 || validateDockerAmd64Sources || validateDockerS390x || validateDockerS390xSources || validateContainerization || validatePswi;
+if (needBuildInfo) {
+    utils.mandatoryInputCheck(buildName, 'build-name')
+    utils.mandatoryInputCheck(buildNum, 'build-num')
+}
 utils.mandatoryInputCheck(releaseVersion, 'release-version')
 
 var nightlyV1 = false
@@ -99,7 +102,8 @@ var zoweReleaseJsonFile = process.env.ZOWE_RELEASE_JSON
 var zoweReleaseJsonObject = JSON.parse(fs.readFileSync(projectRootPath + '/' + zoweReleaseJsonFile))
 
 // this is the target Artifactory path will be released to
-var releaseFilesPattern = `${zoweReleaseJsonObject['zowe']['to']}/org/zowe/${releaseVersion}/*`
+var targetRepo = (zoweReleaseJsonObject['zowe'] && zoweReleaseJsonObject['zowe']['to']) || (zoweReleaseJsonObject['zowe-cli'] && zoweReleaseJsonObject['zowe-cli']['to']) || 'libs-release-local'
+var releaseFilesPattern = `${targetRepo}/org/zowe/${releaseVersion}/*`
 
 if (validateArtifactoryFolder) {
     // check artifactory release pattern
@@ -110,7 +114,7 @@ if (validateArtifactoryFolder) {
     } 
     else {
         const sbomsOnly = searchResult.reduce((prev, curr) => {
-            const buildName = folderItem?.props["build.name"]
+            const buildName = curr?.props?.["build.name"]
             if (buildName && !buildName.startsWith('zowe-dependency-scan')) {
                 return prev && false;
             } 
@@ -141,8 +145,12 @@ else {
 // start to build up a new json derived from the zowe release json file
 var releaseArtifacts = {}
 releaseArtifacts['zowe'] = {}
-releaseArtifacts['zowe']['buildName'] = buildName
-releaseArtifacts['zowe']['buildNumber'] = buildNum
+if (buildName) {
+    releaseArtifacts['zowe']['buildName'] = buildName
+}
+if (buildNum) {
+    releaseArtifacts['zowe']['buildNumber'] = buildNum
+}
 
 if (validateCommitHash) {
     // try to get Zowe pax commit hash since pax will guarenteed to be in the build even if we don't promote it
@@ -177,7 +185,7 @@ if (validatePax) {
     )
 
     if (promoteBundles) {
-        promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'zowe-pax-bundle', 'zowe-*.pax.bundle');
+        promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'zowe-pax-bundle', 'zowe', 'zowe-*.pax.bundle');
     }
  
     if (zowePax['path']) {
@@ -205,7 +213,7 @@ if (validateSMPE) {
     try {
 
         if (promoteBundles) {
-            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'smpe-source-bundle', 'zowe-smpe-*.zip.bundle');
+            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'smpe-source-bundle', 'zowe', 'zowe-smpe-*.zip.bundle');
         }
 
         var smpeZipSource = searchArtifact(
@@ -365,7 +373,7 @@ if (validateContainerization) {
     try {
 
         if (promoteBundles) {
-            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'containerization-bundle', 'zowe-containerization-*.zip.bundle');
+            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'containerization-bundle', 'zowe', 'zowe-containerization-*.zip.bundle');
         }
 
         var containerization = searchArtifact(
@@ -398,7 +406,7 @@ if (validateCLIPackage) {
     try {
 
         if (promoteBundles) {
-            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'zowe-cli-package-bundle', 'zowe-cli-package-*.zip.bundle');
+            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'zowe-cli-package-bundle', 'zowe-cli', 'zowe-cli-package-*.zip.bundle');
         }
 
         var cliPackages
@@ -436,7 +444,7 @@ if (validateCLIPlugins) {
     // get CLI PLUGINS builds source artifact
     try {
         if (promoteBundles) {
-            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'zowe-cli-plugins-bundle', 'zowe-cli-plugins-*.zip.bundle');
+            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'zowe-cli-plugins-bundle', 'zowe-cli', 'zowe-cli-plugins-*.zip.bundle');
         }
 
         var cliPlugins
@@ -473,7 +481,7 @@ else {
 if (validateCLIPythonSDK) {
     try {
         if (promoteBundles) {
-            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'cli-python-sdk-bundle', 'zowe-python-sdk-*.zip.bundle');
+            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'cli-python-sdk-bundle', 'zowe-cli-sdk', 'zowe-python-sdk-*.zip.bundle');
         }
 
         // get CLI python sdk build artifacts
@@ -499,7 +507,7 @@ if (validateCLINodejsSDK) {
     try {
 
         if (promoteBundles) {
-            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'cli-nodejs-sdk-bundle', 'zowe-nodejs-sdk-*.zip.bundle');
+            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'cli-nodejs-sdk-bundle', 'zowe-cli-sdk', 'zowe-nodejs-sdk-*.zip.bundle');
         }
 
         // get CLI nodejs sdk build artifacts
@@ -525,7 +533,7 @@ if (validateCLINodejsSDKTypedoc) {
     try {
 
         if (promoteBundles) {
-            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'cli-nodejs-sdk-typedoc-bundle', 'zowe-nodejs-sdk-typedoc-*.zip');
+            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'cli-nodejs-sdk-typedoc-bundle', 'zowe-cli-sdk', 'zowe-nodejs-sdk-typedoc-*.zip.bundle');
         }
 
         // get CLI nodejs sdk typedoc build artifacts
@@ -551,7 +559,7 @@ if (validatePswi) {
     try {
 
         if (promoteBundles) {
-            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'pswi-bundle', 'zowe-PSWI-*.pax.Z.bundle');
+            promoteBundle(zoweReleaseJsonObject, releaseArtifacts, 'pswi-bundle', 'zowe', 'zowe-PSWI-*.pax.Z.bundle');
         }
 
         // get PSWI build artifacts
@@ -659,21 +667,49 @@ function logSkipValidate(msg) {
     console.log('\x1b[33m%s\x1b[0m', msg)
 }
 
-function promoteBundle(zoweReleaseJsonObject, releaseArtifacts, bundleId, bundleName) {
-    var zowePaxBundle = searchArtifact(
-        `${zoweReleaseJsonObject['zowe']['from']}/${zoweReleaseJsonObject['zowe']['sourcePath']}/${zoweReleaseJsonObject['zowe']['sourceFiles'][bundleName]}`,
-        buildName,
-        buildNum
-    )
-    if (zowePaxBundle['path']) {
-        releaseArtifacts[bundleId] = {}
-        releaseArtifacts[bundleId]['source'] = zowePaxBundle
-        if (realPromote) {
-            releaseArtifacts[bundleId]['target'] = zoweReleaseJsonObject['zowe']['sourceFiles'][bundleName].replace(/\*/g, releaseVersion)
-        } else {
-            releaseArtifacts[bundleId]['target'] = zowePaxBundle['path'].split("/").pop() //pop returns last item in array, ie. part after last slash
-        }
+function promoteBundle(zoweReleaseJsonObject, releaseArtifacts, bundleId, category, bundlePatternKey) {
+    if (!bundlePatternKey) {
+        bundlePatternKey = category;
+        category = 'zowe';
+    }
+    const catConfig = zoweReleaseJsonObject[category];
+    if (!catConfig || !catConfig['sourceFiles'] || !catConfig['sourceFiles'][bundlePatternKey]) {
+        console.warn(`[Warning] Bundle config for ${bundleId} (${category}/${bundlePatternKey}) not found in template`);
+        return;
+    }
+    const sourceFilePattern = catConfig['sourceFiles'][bundlePatternKey];
+    var bundleArtifact;
+    if (category === 'zowe') {
+        bundleArtifact = searchArtifact(
+            `${catConfig['from']}/${catConfig['sourcePath']}/${sourceFilePattern}`,
+            buildName,
+            buildNum
+        );
     } else {
-        throw new Error(`Missing sigstore bundle for ${bundleId} : ${bundleName}`);
+        var fromRepo = realPromote ? catConfig['from'] : (catConfig['nightlyFrom'] || catConfig['from']);
+        bundleArtifact = searchArtifact(
+            `${fromRepo}/${catConfig['sourcePath']}/*/${sourceFilePattern}`
+        );
+    }
+
+    if (bundleArtifact && bundleArtifact['path']) {
+        releaseArtifacts[bundleId] = {};
+        releaseArtifacts[bundleId]['source'] = bundleArtifact;
+        if (realPromote) {
+            if (category === 'zowe') {
+                releaseArtifacts[bundleId]['target'] = sourceFilePattern.replace(/\*/g, releaseVersion);
+            } else {
+                releaseArtifacts[bundleId]['target'] = sourceFilePattern.replace(/[0-9]\*/g, releaseVersion);
+            }
+        } else {
+            if (category === 'zowe') {
+                releaseArtifacts[bundleId]['target'] = bundleArtifact['path'].split("/").pop();
+            } else {
+                releaseArtifacts[bundleId]['target'] = 'cli/' + bundleArtifact['path'].split('/').pop();
+            }
+        }
+        logValidate(`>> Found bundle ${bundleId}: ${bundleArtifact['path']}`);
+    } else {
+        console.warn(`[Warning] Missing sigstore bundle for ${bundleId} : ${bundlePatternKey}`);
     }
 }

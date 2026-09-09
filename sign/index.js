@@ -43,17 +43,22 @@ var zoweReleaseJsonObject = JSON.parse(fs.readFileSync(projectRootPath + '/' + z
 var promoteJsonObject = JSON.parse(fs.readFileSync(promoteJsonFileNameFull))
 
 // this is the target Artifactory path will be released to
-var targetPath = `${zoweReleaseJsonObject['zowe']['to']}/org/zowe/${releaseVersion}/`
+var targetRepo = (zoweReleaseJsonObject['zowe'] && zoweReleaseJsonObject['zowe']['to']) || (zoweReleaseJsonObject['zowe-cli'] && zoweReleaseJsonObject['zowe-cli']['to']) || 'libs-release-local'
+var targetPath = `${targetRepo}/org/zowe/${releaseVersion}/`
 
 var uploadArtifacts = {"files":[]}
 
 // add zowe sources into final upload file spec object
-// only if it is a formal release, otherwise there will be no source generated
+// only if it is a formal release and the source file was generated
 if (process.env.IS_FORMAL_RELEASE) {
-    uploadArtifacts['files'].push({
-        "pattern" : `${localReleaseFolder}/zowe_sources-*.zip`,
-        "target"  : targetPath
-    })
+    const sourceZipPattern = `${localReleaseFolder}/zowe_sources-*.zip`;
+    const sourceZipCheck = utils.sh(`ls ${sourceZipPattern} 2>/dev/null || true`);
+    if (sourceZipCheck && sourceZipCheck.trim() !== '') {
+        uploadArtifacts['files'].push({
+            "pattern" : sourceZipPattern,
+            "target"  : targetPath
+        })
+    }
 }
 
 // sign and hash each file then add into upload file spec object
