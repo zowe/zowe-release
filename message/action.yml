@@ -9,7 +9,8 @@ inputs:
     required: true
   build-num:
     description: zowe build number
-    required: true
+    required: false
+    default: 'N/A'
 outputs:
   slack-message:
     description: the message to put into slack

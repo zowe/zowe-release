@@ -36,7 +36,8 @@ var zoweReleaseJsonFile = process.env.ZOWE_RELEASE_JSON
 var zoweReleaseJsonObject = JSON.parse(fs.readFileSync(projectRootPath + '/' + zoweReleaseJsonFile))
 
 // this is the target Artifactory path will be released to
-var targetPath = `${zoweReleaseJsonObject['zowe']['to']}/org/zowe/${releaseVersion}`
+var targetRepo = (zoweReleaseJsonObject['zowe'] && zoweReleaseJsonObject['zowe']['to']) || (zoweReleaseJsonObject['zowe-cli'] && zoweReleaseJsonObject['zowe-cli']['to']) || 'libs-release-local'
+var targetPath = `${targetRepo}/org/zowe/${releaseVersion}`
 
 var promoteJsonObject = JSON.parse(fs.readFileSync(promoteJsonFileNameFull))
 
@@ -51,9 +52,9 @@ for (let [component, properties] of Object.entries(promoteJsonObject)) {
 =====================================================================================================================
 Promoting artifact ${component}
 `)
-    var buildTimestamp = properties['source']['props']['build.timestamp']
-    var buildName = properties['source']['props']['build.name']
-    var buildNumber = properties['source']['props']['build.number']
+    var buildTimestamp = properties['source']['props'] ? properties['source']['props']['build.timestamp'] : undefined
+    var buildName = properties['source']['props'] ? properties['source']['props']['build.name'] : undefined
+    var buildNumber = properties['source']['props'] ? properties['source']['props']['build.number'] : undefined
     var sourceFullPath = `${properties['source']['path']}`
     var targetFullPath = `${targetPath}/${properties['target']}`
 
